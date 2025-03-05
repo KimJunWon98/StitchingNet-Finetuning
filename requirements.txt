@@ -1,0 +1,12 @@
+torch
+torchvision
+torchaudio
+timm
+scikit-learn
+wandb
+matplotlib
+opencv-python
+python-dotenv
+nvitop
+torchinfo 
+ptflops
