@@ -10,6 +10,7 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+modules/__pycache__/
 
 # Jupyter Notebook 체크포인트
 .ipynb_checkpoints/

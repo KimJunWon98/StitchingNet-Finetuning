@@ -26,6 +26,12 @@ def test_model(model, dataloader, device):
     print("\nClassification Report:")
     print(cr)
 
+import torch
+import time
+import os
+import numpy as np
+from sklearn.metrics import confusion_matrix, classification_report
+
 def test_best_model(model, dataloader, device, checkpoint_path):
     """
     저장된 체크포인트(최적 모델) 로드 후 평가
@@ -36,22 +42,36 @@ def test_best_model(model, dataloader, device, checkpoint_path):
     model.eval()
     model.to(device)
 
+    # (A) loss 계산에 필요한 criterion 추가
+    criterion = torch.nn.CrossEntropyLoss()
+
     all_preds = []
     all_labels = []
     misclassified_samples = []
     processing_times = []
 
+    # loss 측정을 위한 변수들
+    total_loss = 0.0
+    total_samples = 0
+
     # 2) 배치별 추론
     with torch.no_grad():
         for inputs, labels, paths in dataloader:
             start_time = time.time()
+
             inputs = inputs.to(device)
             labels = labels.to(device)
             outputs = model(inputs)
             _, predicted = torch.max(outputs, 1)
-            end_time = time.time()
 
+            end_time = time.time()
             processing_times.append(end_time - start_time)
+
+            # (B) loss 계산
+            loss = criterion(outputs, labels)
+            batch_size = inputs.size(0)
+            total_loss += loss.item() * batch_size  # 배치별 loss * 배치크기 합
+            total_samples += batch_size
 
             all_labels.extend(labels.cpu().numpy())
             all_preds.extend(predicted.cpu().numpy())
@@ -72,6 +92,10 @@ def test_best_model(model, dataloader, device, checkpoint_path):
     print(cr)
     print(f"\nAccuracy: {accuracy * 100:.2f}%\n")
 
+    # 평균 loss
+    test_loss = total_loss / total_samples
+    print(f"Test Loss: {test_loss:.4f}")
+
     # 4) misclassified samples를 상위 폴더/val_results에 저장
     parent_folder = os.path.dirname(checkpoint_path)        # 체크포인트 상위 폴더
     val_results_folder = os.path.join(parent_folder, "val_results")
@@ -82,13 +106,13 @@ def test_best_model(model, dataloader, device, checkpoint_path):
     with open(results_file, "w", encoding="utf-8") as f:
         f.write("path,true_label,pred_label\n")
         for path, true_label, pred_label in misclassified_samples:
-            # CSV 형태: 한 줄에 path, true_label, pred_label
             f.write(f"{path},{true_label},{pred_label}\n")
 
     print(f"\nMisclassified samples saved to: {results_file}")
 
     # 5) 평균 배치 처리 시간
     average_time_per_batch = np.mean(processing_times)
-    # 주의: 이 값은 "배치 전체를 처리하는 데 걸린 평균 시간(초)"
-    # 배치 내 이미지 수를 고려하지 않았으므로 "배치당 시간"임
     print(f"Average processing time per batch: {average_time_per_batch:.4f} seconds")
+
+    # (C) 필요한 값을 반환
+    return test_loss, accuracy, average_time_per_batch

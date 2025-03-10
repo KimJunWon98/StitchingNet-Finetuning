@@ -1,51 +1,54 @@
 hyperparameters:
   model_list:
-    - mobilenetv2_050
-    - mobilenetv2_100
-    - mobilenetv2_110d
-    - mobilenetv2_120d
-    - mobilenetv2_140
-    - mobilenetv3_small_050
-    - mobilenetv3_small_075
-    - mobilenetv3_small_100
-    - mobilenetv3_large_100
-    - mobilenetv3_large_150d
-    - mobilenetv3_rw
-    - mobilenetv4_conv_small_050
-    - mobilenetv4_conv_small
-    - mobilenetv4_conv_medium
-    - mobilenetv4_conv_large
-    - mobilenetv4_hybrid_medium
-    - mobilenetv4_hybrid_large
-    - ghostnet_100
-    - ghostnetv2_100
-    - ghostnetv2_130
-    - ghostnetv2_160
+    # - mobilenetv1_100
+    # - mobilenetv2_050
+    # - mobilenetv2_100
+    # - mobilenetv2_110d
+    # - mobilenetv2_120d
+    # - mobilenetv2_140
+    # - mobilenetv3_small_050
+    # - mobilenetv3_small_075
+    # - mobilenetv3_small_100
+    # - mobilenetv3_large_100
+    # - mobilenetv3_large_150d
+    # - mobilenetv3_rw
+    # - mobilenetv4_conv_small_050
+    # - mobilenetv4_conv_small
+    # - mobilenetv4_conv_medium
+    # - mobilenetv4_conv_large
+    # - mobilenetv4_hybrid_medium
+    # - mobilenetv4_hybrid_large
+    # - ghostnet_100
+    # - ghostnetv2_100
+    # - ghostnetv2_130
+    # - ghostnetv2_160
     - repghostnet_050
-    - repghostnet_080
-    - repghostnet_100
-    - repghostnet_130
-    - repghostnet_200
-    - lcnet_050
-    - lcnet_075
-    - lcnet_100
-    - mnasnet_100
-    - spnasnet_100
-    - mixnet_s
-    - mixnet_m
-    - mixnet_l
-    - mixnet_xl
-    - tinynet_a
-    - tinynet_b
-    - tinynet_c
-    - tinynet_d
-    - tinynet_e
-    - resnet18
-    - resnet34
+    # - repghostnet_080
+    # - repghostnet_100
+    # - repghostnet_130
+    # - repghostnet_200
+    # - lcnet_050
+    # - lcnet_075
+    # - lcnet_100
+    # - mnasnet_100
+    # - spnasnet_100
+    # - mixnet_s
+    # - mixnet_m
+    # - mixnet_l
+    # - mixnet_xl
+    # - tinynet_a
+    # - tinynet_b
+    # - tinynet_c
+    # - tinynet_d
+    # - tinynet_e
+    # - resnet18
+    # - resnet34
 
-  batch_size: 64
+  seed : 2025
+  batch_size: 32
   epochs: 300
   patience: 15
+  max_checkpoints : 5
   num_workers: 8
   layers:
     # - [fc]
@@ -60,13 +63,14 @@ data:
   root: "/workspace/hojeon/model-fine-tuning/fine-tuning-project/dataset/StitchingNet"
   train_ratio: 0.7
   val_ratio: 0.15
+  use_augmentation: true
 
 training:
-  project_name: "Hojeon-FinuTuning"
+  project_name: "Hojeon-FinuTuning-Screening"
   # GPU가 여러 개이더라도 DataParallel을 활성화할지/비활성화할지 결정
   # (true로 설정 시, GPU가 2개 이상인 경우 DataParallel 적용)
   use_dataparallel: false
-  checkpoint_base_dir: "/workspace/hojeon/model-fine-tuning/fine-tuning-project/checkpoint"   # 체크포인트를 저장할 기본 경로
+  checkpoint_base_dir: "/workspace/hojeon/model-fine-tuning/fine-tuning-project/checkpoint-aug-true"   # 체크포인트를 저장할 기본 경로
   freeze_layers: false # 모든 파라미터(requires_grad=True)
 
   # 아래 두 파라미터가 base_lr, head_lr
