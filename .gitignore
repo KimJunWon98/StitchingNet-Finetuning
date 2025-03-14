@@ -1,12 +1,12 @@
-# 환경변수 파일
+# 환경 변수 파일
 .env
 
-# 데이터셋 및 체크포인트 폴더
+# 데이터셋, 체크포인트, 및 로그 파일들
 dataset/
 checkpoint/
 *.log
 
-# 파이썬 컴파일 파일
+# 파이썬 컴파일 및 캐시 파일들
 __pycache__/
 *.pyc
 *.pyo
@@ -16,19 +16,15 @@ modules/__pycache__/git
 # Jupyter Notebook 체크포인트
 .ipynb_checkpoints/
 
-# IDE 설정 파일
+# IDE 설정 파일들
 .vscode/
 .idea/
 
-# wandb 로그 폴더 및 로그 파일
+# wandb 로그 폴더
 wandb/
-output.log
 
-# 추가 구성 파일 (사용하지 않을 파일들)
-config_.yaml
 
-# 기타 파일들
-model_info.csv
-model_list.ipynb
-test.py
+# 사용하지 않을 폴더 및 파일들
 others/
+config_.yaml
+test.py
