@@ -4,13 +4,14 @@
 # 데이터셋 및 체크포인트 폴더
 dataset/
 checkpoint/
+*.log
 
 # 파이썬 컴파일 파일
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-modules/__pycache__/
+modules/__pycache__/git
 
 # Jupyter Notebook 체크포인트
 .ipynb_checkpoints/
@@ -30,3 +31,4 @@ config_.yaml
 model_info.csv
 model_list.ipynb
 test.py
+others/
