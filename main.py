@@ -70,7 +70,7 @@ def get_model_statistics(model, input_size=(1, 3, 224, 224)):
 
 def main():
     # 1) YAML config 파일 읽기
-    with open("config-aug-true.yaml", "r") as f:
+    with open("config.yaml", "r") as f:
         config = yaml.safe_load(f)
 
     hparams = config["hyperparameters"]
