@@ -35,8 +35,8 @@ def get_train_transform():
         transforms.ColorJitter(brightness=0.2, contrast=0.2),
         transforms.ToTensor(),
         AddGaussianNoise(mean=0.0, std=0.02, p=0.5),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         # transforms.Normalize((0.569, 0.441, 0.439), (0.149, 0.177, 0.173))
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
 def get_val_test_transform():
@@ -44,8 +44,8 @@ def get_val_test_transform():
     return transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         # transforms.Normalize((0.569, 0.441, 0.439), (0.149, 0.177, 0.173))
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
 class DefectDataset(Dataset):
