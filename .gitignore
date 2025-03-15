@@ -28,3 +28,4 @@ wandb/
 others/
 config_.yaml
 test.py
+*.ipynb

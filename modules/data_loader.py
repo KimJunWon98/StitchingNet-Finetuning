@@ -1,7 +1,7 @@
 from torch.utils.data import DataLoader
 from .dataset import (
     make_all_samples, stratified_split,
-    DefectDataset, get_train_transform, get_val_test_transform
+    DefectDataset, get_train_transform_v1, get_train_transform_v2, get_train_transform_v3, get_val_test_transform
 )
 
 def get_defect_data_loaders(
@@ -10,7 +10,7 @@ def get_defect_data_loaders(
     num_workers=0,
     train_ratio=0.7,
     val_ratio=0.15,
-    use_augmentation=False
+    use_augmentation=0
 ):
     """
     - use_augmentation=True면, 훈련용에만 수평/수직 뒤집기 등 증강이 들어감.
@@ -26,10 +26,18 @@ def get_defect_data_loaders(
     )
 
     # 3) transform 정의
-    if use_augmentation:
-        train_transform = get_train_transform()
+    if use_augmentation == 1:
+        print("version 1")
+        train_transform = get_train_transform_v1()
+    elif use_augmentation == 2:
+        print("version 2")
+        train_transform = get_train_transform_v2()     
+    elif use_augmentation == 3:
+        print("version 3")
+        train_transform = get_train_transform_v3()           
     else:
         # 증강 없이 기본 변환만
+        print("version 0")
         train_transform = get_val_test_transform()
 
     val_test_transform = get_val_test_transform()

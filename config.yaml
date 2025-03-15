@@ -1,16 +1,12 @@
 hyperparameters:
   model_list:
-    # - mobilenetv1_100
-    # - mobilenetv2_050
-    # - mobilenetv2_100
-    # - mobilenetv2_110d
-    # - mobilenetv2_120d
-    - mobilenetv2_140
+    - mobilenetv1_100
+    - mobilenetv2_050
+    - mobilenetv2_100
     - mobilenetv3_small_050
     - mobilenetv3_small_075
     - mobilenetv3_small_100
     - mobilenetv3_large_100
-    - mobilenetv3_large_150d
     - mobilenetv3_rw
     - mobilenetv4_conv_small_050
     - mobilenetv4_conv_small
@@ -20,13 +16,9 @@ hyperparameters:
     - mobilenetv4_hybrid_large
     - ghostnet_100
     - ghostnetv2_100
-    - ghostnetv2_130
-    - ghostnetv2_160
     - repghostnet_050
     - repghostnet_080
     - repghostnet_100
-    - repghostnet_130
-    - repghostnet_200
     - lcnet_050
     - lcnet_075
     - lcnet_100
@@ -44,12 +36,12 @@ hyperparameters:
     - resnet18
     - resnet34
 
-  seed : 1234
-  batch_size: 16
+  seed : 2025
+  batch_size: 32
   epochs: 500
   patience: 15
   max_checkpoints : 3
-  num_workers: 4
+  num_workers: 8
   layers:
     # - [fc]
     # - [layer4, fc]
@@ -60,17 +52,17 @@ hyperparameters:
     - [all]
 
 data:
-  root: "/workspace/hojeon/model-fine-tuning/fine-tuning-project/dataset/StitchingNet"
+  root: "./dataset/StitchingNet"
   train_ratio: 0.7
   val_ratio: 0.15
-  use_augmentation: false
+  use_augmentation: 1
 
 training:
-  project_name: "Hojeon-FinuTuning-Screening"
+  project_name: "StitchingNet-FinuTuning"
   # GPU가 여러 개이더라도 DataParallel을 활성화할지/비활성화할지 결정
   # (true로 설정 시, GPU가 2개 이상인 경우 DataParallel 적용)
   use_dataparallel: false
-  checkpoint_base_dir: "/workspace/hojeon/model-fine-tuning/fine-tuning-project/checkpoint/seed-1234-aug-false"   # 체크포인트를 저장할 기본 경로
+  checkpoint_base_dir: "./checkpoint/"   # 체크포인트를 저장할 기본 경로
   freeze_layers: false # 모든 파라미터(requires_grad=True)
 
   # 아래 두 파라미터가 base_lr, head_lr
