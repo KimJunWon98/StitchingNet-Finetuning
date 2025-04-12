@@ -8,26 +8,28 @@ MobileNet 시리즈를 포함한 다양한 CNN 구조를 평가하고, 정확도
 
 ## 데이터셋 정보
 
-Kaggle에 공개된 [**StitchingNet 데이터셋**](https://www.kaggle.com/datasets/hyungjung/stitchingnet-dataset)을 사용합니다. 이 데이터셋은 11가지 클래스(정상 및 10가지 불량 유형)로 구분된 총 14,565장의 봉제 이미지(224×224 크기)를 포함하고 있으며, 다양한 원단과 실의 색상을 고려하여 만들어졌습니다.
+Kaggle에 공개된 [**StitchingNet 데이터셋**](https://www.kaggle.com/datasets/hyungjung/stitchingnet-dataset)을 사용합니다. 이 데이터셋은 11가지 클래스(정상과과 10가지 불량 유형)로 구분된 총 14,565장의 봉제 이미지(224×224 크기)를 포함하고 있으며, 다양한 원단과 실의 색상을 고려하여 만들어졌습니다.
+
+학습을 위해 데이터셋을 훈련, 검증, 테스트 세트로 나누고 다양한 데이터 증강 기법을 적용하였습니다.
 
 ![StitchingNet 데이터셋](./assets/StitchingNet-cover.png)
 
 
-학습을 위해 데이터셋을 훈련, 검증, 테스트 세트로 나누고 다양한 데이터 증강 기법을 적용하였습니다.
+
 
 
 ## 모델 경량화 기법
 
-다음의 경량화 기법을 적용하여 라즈베리파이에서 실시간 추론이 가능한 모델을 제작하였습니다.
+다음의 경량화 기법을 적용하여 엣지 디바이스에서 실시간 추론이 가능한 모델을 제작하였습니다.
 
 - **양자화(Quantization)**:
   - PTQ(Post-Training Quantization): 추가 학습 없이 FP32 모델을 INT8로 변환하여 속도 향상.
   - QAT(Quantization-Aware Training): Fake Quantization을 적용하여 학습함으로써 양자화로 인한 정확도 손실 최소화.
-- **알파(Width Multiplier) 조정**: 각 레이어 채널 수를 축소해 FLOPs 및 모델 크기를 조정하며 정확도 유지.
+- **Width Multiplier 조정**: 각 레이어 채널 수를 축소해 FLOPs 및 모델 크기를 조정.
 
 
 추가적으로 적용을 고려하고 있는 기법은 다음과 같습니다다.
-- **Pruning**: 중요하지 않은 채널을 제거하는 구조적 Pruning 기법을 활용하여 모델 크기 및 연산량 감소.
+- **Pruning**: 중요하지 않은 채널을 제거하는 Pruning 기법을 활용하여 모델 크기 및 연산량 감소.
 - **Knowledge Distillation (KD)**: 성능이 좋은 큰 모델(Teacher)의 지식을 작은 모델(Student)로 이전하여 성능 향상.
 
 ## 데이터 증강 기법
@@ -40,6 +42,8 @@ Kaggle에 공개된 [**StitchingNet 데이터셋**](https://www.kaggle.com/datas
 - **Version 3**: 기하학적 변형 + 색상 변화 + 블러 및 노이즈(가우시안 블러 및 노이즈)
 
 실험 결과 Version 1과 Version 2가 가장 우수한 성능을 나타냈습니다.
+
+![StitchingNet Data Augmentation](./assets/augmentation.png)
 
 ## 프로젝트 사용 방법
 
