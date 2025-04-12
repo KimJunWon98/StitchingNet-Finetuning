@@ -1,40 +1,40 @@
 hyperparameters:
   model_list:
-    - mobilenetv1_100
-    - mobilenetv2_050
-    - mobilenetv2_100
-    - mobilenetv3_small_050
-    - mobilenetv3_small_075
-    - mobilenetv3_small_100
-    - mobilenetv3_large_100
-    - mobilenetv3_rw
-    - mobilenetv4_conv_small_050
-    - mobilenetv4_conv_small
-    - mobilenetv4_conv_medium
-    - mobilenetv4_conv_large
-    - mobilenetv4_hybrid_medium
-    - mobilenetv4_hybrid_large
-    - ghostnet_100
-    - ghostnetv2_100
-    - repghostnet_050
-    - repghostnet_080
-    - repghostnet_100
-    - lcnet_050
-    - lcnet_075
+    # - mobilenetv1_100
+    # - mobilenetv2_050
+    # - mobilenetv2_100
+    # - mobilenetv3_small_050
+    # - mobilenetv3_small_075
+    # - mobilenetv3_small_100
+    # - mobilenetv3_large_100
+    # - mobilenetv3_rw
+    # - mobilenetv4_conv_small_050
+    # - mobilenetv4_conv_small
+    # - mobilenetv4_conv_medium
+    # - mobilenetv4_conv_large
+    # - mobilenetv4_hybrid_medium
+    # - mobilenetv4_hybrid_large
+    # - ghostnet_100
+    # - ghostnetv2_100
+    # - repghostnet_050
+    # - repghostnet_080
+    # - repghostnet_100
+    # - lcnet_050
+    # - lcnet_075
     - lcnet_100
-    - mnasnet_100
-    - spnasnet_100
-    - mixnet_s
-    - mixnet_m
-    - mixnet_l
-    - mixnet_xl
-    - tinynet_a
-    - tinynet_b
-    - tinynet_c
-    - tinynet_d
-    - tinynet_e
-    - resnet18
-    - resnet34
+    # - mnasnet_100
+    # - spnasnet_100
+    # - mixnet_s
+    # - mixnet_m
+    # - mixnet_l
+    # - mixnet_xl
+    # - tinynet_a
+    # - tinynet_b
+    # - tinynet_c
+    # - tinynet_d
+    # - tinynet_e
+    # - resnet18
+    # - resnet34
 
   seed : 2025
   batch_size: 32
@@ -55,10 +55,10 @@ data:
   root: "./dataset/StitchingNet"
   train_ratio: 0.7
   val_ratio: 0.15
-  use_augmentation: 1
+  use_augmentation: 3
 
 training:
-  project_name: "StitchingNet-FinuTuning"
+  project_name: "StitchingNet-FinuTuning-version3"
   # GPU가 여러 개이더라도 DataParallel을 활성화할지/비활성화할지 결정
   # (true로 설정 시, GPU가 2개 이상인 경우 DataParallel 적용)
   use_dataparallel: false

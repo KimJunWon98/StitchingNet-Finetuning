@@ -60,7 +60,8 @@ def train_model(
     patience=5,  # EarlyStopping patience
     max_checkpoints=None,  # 최근 체크포인트 보관 개수 (없으면 patience로 설정)
     checkpoint_dir="./checkpoints",
-    scheduler=None
+    scheduler=None,
+    device=None
 ):
 
     import wandb
@@ -79,9 +80,10 @@ def train_model(
         layers='_'.join(layers), 
         model_name=model_name
     )
-
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model.to(device)
+    if device == None:
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    else:
+        model.to(device)
 
     # 훈련/검증 결과 저장용
     layer_key = '_'.join(layers)

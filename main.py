@@ -1,3 +1,4 @@
+# main.py
 import yaml
 import wandb
 import torch
@@ -20,17 +21,16 @@ from modules.train import train_model
 from modules.evaluate import test_best_model
 
 def replace_classifier(model, num_classes):
-    """
-    모델 구조에 따라 최종 분류 레이어를 교체하는 헬퍼 함수.
-    다양한 모델(ResNet, MobileNet, 등)에 대응.
-    """
-    if hasattr(model, 'fc'):  # 예: ResNet, RegNet 등
+    
+    # 모델 구조에 따라 최종 분류 레이어를 교체, 다양한 모델(ResNet, MobileNet, 등)에 대응.
+    
+    if hasattr(model, 'fc'):  # ResNet, RegNet 등
         if isinstance(model.fc, nn.Linear):
             num_ftrs = model.fc.in_features
             model.fc = nn.Linear(num_ftrs, num_classes)
             return model
 
-    if hasattr(model, 'classifier'):  # 예: MobileNet, EfficientNet 등
+    if hasattr(model, 'classifier'):  # MobileNet, EfficientNet 등
         if isinstance(model.classifier, nn.Linear):
             num_ftrs = model.classifier.in_features
             model.classifier = nn.Linear(num_ftrs, num_classes)
@@ -46,7 +46,7 @@ def replace_classifier(model, num_classes):
 
 def get_model_statistics(model, input_size=(1, 3, 224, 224)):
     """
-    모델의 파라미터 수, 용량(추정), FLOPs를 계산하는 헬퍼 함수.
+    모델의 파라미터 수, 용량(추정), FLOPs를 계산하는 함수.
     - model: 이미 GPU/CPU device에 .to(device) 된 상태의 모델
     - input_size: (batch_size, channel, height, width)
     """
@@ -210,9 +210,9 @@ def main():
                 from torch.optim.lr_scheduler import CosineAnnealingLR
                 scheduler = CosineAnnealingLR(optimizer, T_max=T_max, eta_min=eta_min)
 
-            # ─────────────────────────────────────────────────────────
+
             # (D) 모델 통계 계산 (파라미터 수, 모델 용량, FLOPs)
-            #     - 반드시 모델이 to(device)된 뒤, 학습 전(초기 상태) 시점에 계산
+            #  모델이 to(device)된 뒤, 학습 전(초기 상태) 시점에 계산
             param_count, model_size_mb, flops = get_model_statistics(
                 model,
                 input_size=(1, 3, 224, 224)  # 실제 이미지 크기에 맞게 조정
@@ -223,7 +223,6 @@ def main():
                 "model_size_MB": model_size_mb,
                 "total_FLOPs": flops
             })
-            # ─────────────────────────────────────────────────────────
 
             # (E) train_model
             results = train_model(

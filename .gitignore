@@ -5,6 +5,7 @@
 dataset/
 checkpoint/
 *.log
+etc/
 
 # 파이썬 컴파일 및 캐시 파일들
 __pycache__/

@@ -154,16 +154,16 @@ def get_train_transform_v3():
         # blur or noise
         # MotionBlur, GaussianBlur,  GaussNoise
         A.OneOf([
-            A.MotionBlur(blur_limit=7, p=1.0),
+            A.MotionBlur(blur_limit=5, p=1.0),
             A.GaussianBlur(blur_limit=(3,5), p=1.0),
-        ], p=0.25),
+        ], p=0.35),
 
         A.GaussNoise(
-            std_range=(0.01, 0.1),
+            std_range=(0.01, 0.05),
             mean_range=(0.0, 0.0),
             per_channel=True,
-            noise_scale_factor=1,
-            p=0.5
+            noise_scale_factor=0.1,
+            p=0.35
         ),
 
         A.Normalize(mean=(0.485, 0.456, 0.406),
@@ -302,9 +302,8 @@ def show_augmented_samples(dataset, n_samples=5):
 
 
 # 시각화용 normalize 적용 X 
-# ===========================================
 # 1) 기하학적 변형만 (No Norm 버전)
-# ===========================================
+
 def get_train_transform_v1_no_norm():
     return AlbumentationsTransform(A.Compose([
         A.Resize(224, 224),
@@ -320,9 +319,8 @@ def get_train_transform_v1_no_norm():
         ToTensorV2()
     ], p=1.0))
 
-# ===========================================
+
 # 2) 기하학적 변형 + 색상 변형 (No Norm 버전)
-# ===========================================
 def get_train_transform_v2_no_norm():
     return AlbumentationsTransform(A.Compose([
         A.Resize(224, 224),
@@ -361,9 +359,8 @@ def get_train_transform_v2_no_norm():
         ToTensorV2()
     ], p=1.0))
 
-# ===========================================
+
 # 3) 기하학적 변형 + 색상 변형 + 블러 or 노이즈 (No Norm 버전)
-# ===========================================
 def get_train_transform_v3_no_norm():
     return AlbumentationsTransform(A.Compose([
         A.Resize(224, 224),
@@ -401,16 +398,16 @@ def get_train_transform_v3_no_norm():
 
         # blur or noise
         A.OneOf([
-            A.MotionBlur(blur_limit=7, p=1.0),
+            A.MotionBlur(blur_limit=5, p=1.0),
             A.GaussianBlur(blur_limit=(3,5), p=1.0),
-        ], p=0.25),
+        ], p=0.35),
 
         A.GaussNoise(
-            std_range=(0.01, 0.1),
+            std_range=(0.01, 0.05),
             mean_range=(0.0, 0.0),
             per_channel=True,
-            noise_scale_factor=1,
-            p=0.5
+            noise_scale_factor=0.1,
+            p=0.35
         ),
 
         # A.Normalize(...) 제거
