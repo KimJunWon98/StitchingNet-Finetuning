@@ -10,7 +10,7 @@ MobileNet 시리즈를 포함한 다양한 CNN 구조를 평가하고, 정확도
 
 Kaggle에 공개된 [**StitchingNet 데이터셋**](https://www.kaggle.com/datasets/hyungjung/stitchingnet-dataset)을 사용합니다. 이 데이터셋은 11가지 클래스(정상 및 10가지 불량 유형)로 구분된 총 14,565장의 봉제 이미지(224×224 크기)를 포함하고 있으며, 다양한 원단과 실의 색상을 고려하여 만들어졌습니다.
 
-![StitchingNet 데이터셋](/home/junwon/hojeon/git-pull-folder/StitchingNet-Finetuning/assets/StitchingNet-cover.png)
+![StitchingNet 데이터셋](./assets/StitchingNet-cover.png)
 
 
 학습을 위해 데이터셋을 훈련, 검증, 테스트 세트로 나누고 다양한 데이터 증강 기법을 적용하였습니다.
