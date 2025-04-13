@@ -7,7 +7,7 @@
 MobileNet 시리즈를 포함한 다양한 CNN 구조를 평가하고, 정확도를 유지하면서도 모델 크기와 연산량을 최소화하기 위해 PTQ/QAT 양자화, 알파(Width Multiplier) 조절 등의 기법을 적용하였습니다. 또한 Pruning 및 Knowledge Distillation 기법들을 추가적으로 적용해볼 예정입니다.
 
 
-## 데이터셋 정보
+## 데이터셋 정보 
 
 Kaggle에 공개된 [**StitchingNet 데이터셋**](https://www.kaggle.com/datasets/hyungjung/stitchingnet-dataset)을 사용합니다. 이 데이터셋은 11가지 클래스(정상과 10가지 불량 유형)로 구분된 총 14,565장의 봉제 이미지(224×224 크기)를 포함하고 있으며, 다양한 원단과 실의 색상을 고려하여 만들어졌습니다.
 
