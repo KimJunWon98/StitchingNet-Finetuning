@@ -1,4 +1,4 @@
-# StitchingNet 데이터셋을 활용한 Fine-Tuning 및 모델 경량화
+# StitchingNet Fine-Tuning 및 모델 경량화
 
 ## 프로젝트 개요
 

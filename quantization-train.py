@@ -46,9 +46,8 @@ from custom_models.timm_mobilnetv3_small_quantization import timm_mobilenet_v3_s
 from modules.fuse_model import fuse_model as generic_fuse
 from custom_models.timm_fuse import load_fused_timm_model   
 
-# ---------------------------------------------------------------------------
-# Global quantization engine (overwritten in main from config)
-# ---------------------------------------------------------------------------
+
+# Global quantization engine 
 QENGINE: str = "fbgemm"   # 기본값
 
 
@@ -63,9 +62,8 @@ def safe_fuse(model: nn.Module) -> None:
         generic_fuse(model)
 
 
-# ---------------------------------------------------------------------------
-# Unified model‑factory
-# ---------------------------------------------------------------------------
+
+# model‑factory
 def create_model_by_name(
     model_name: str,
     num_classes: int,
@@ -225,9 +223,8 @@ def apply_post_training_quantization(model: nn.Module, calibration_loader):
     return convert(model, inplace=False)
 
 
-# ---------------------------------------------------------------------------
+
 # QAT Utilities
-# ---------------------------------------------------------------------------
 
 def convert_key(key: str) -> str | None:
     """Convert timm parameter keys to torchvision‑style keys (unused)."""
@@ -290,7 +287,7 @@ def apply_qat_training(
     model.to(device)
 
     for epoch in range(epochs):
-        # --------------------------- Training ---------------------------
+        # Training 
         model.train()
         running_loss = 0.0
         for inputs, labels, _ in trainloader:
@@ -306,7 +303,7 @@ def apply_qat_training(
 
         epoch_loss = running_loss / len(trainloader.dataset)
 
-        # --------------------------- Validation -------------------------
+        # Validation 
         model.eval()
         correct = 0
         total = 0
@@ -326,7 +323,7 @@ def apply_qat_training(
             f"[QAT] Epoch [{epoch + 1}/{epochs}] | Loss: {epoch_loss:.4f} | Val Acc: {val_acc:.4f}"
         )
 
-        # ---------------------- INT8 Evaluation ------------------------
+        # INT8 Evaluation 
         model_int8 = copy.deepcopy(model).to("cpu").eval()
         torch.backends.quantized.engine = QENGINE
         model_int8 = convert(model_int8, inplace=False)
@@ -343,9 +340,7 @@ def apply_qat_training(
     return model
 
 
-# ---------------------------------------------------------------------------
 # Model‑Specific Helpers
-# ---------------------------------------------------------------------------
 
 def fuse_mobilenetv2_timm(model: nn.Module):
     """Fuse layers in a timm MobileNetV2 model for quantization."""
@@ -368,10 +363,6 @@ def fuse_mobilenetv2_timm(model: nn.Module):
     fuse_modules(model, ["conv_head", "bn2", "act2"], inplace=True)
 
 
-
-# ---------------------------------------------------------------------------
-# Main Training Script
-# ---------------------------------------------------------------------------
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Quantization Training Pipeline")
