@@ -375,12 +375,15 @@ def fuse_mobilenetv2_timm(model: nn.Module):
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Quantization Training Pipeline")
-    parser.add_argument("--model", type=str, help="모델 이름 (예: mobilenetv3_small)")
-    parser.add_argument("--alpha", type=float, help="alpha 값", default=None)
-    parser.add_argument("--quant-mode", type=str, choices=["PTQ", "QAT"], help="양자화 모드", default=None)
-    parser.add_argument("--weights", type=str, help="사전 학습 가중치 경로", default=None)
+    parser.add_argument("--model", type=str, help="모델 이름 (예: mobilenet_v2)")
+    parser.add_argument("--augment", type=int, choices=[0,1,2,3], help="데이터 증강 Version (0, 1, 2, 3)", default=None)
     parser.add_argument("--epochs", type=int, help="학습 epoch 수", default=None)
-    parser.add_argument("--lr", type=float, help="학습률", default=None)
+    parser.add_argument("--batch-size", type=int, help="배치 크기", default=None)
+    parser.add_argument("--patience", type=int, help="Early stopping patience", default=None)
+    # parser.add_argument("--alpha", type=float, help="alpha 값", default=None)
+    # parser.add_argument("--quant-mode", type=str, choices=["PTQ", "QAT"], help="양자화 모드", default=None)
+    # parser.add_argument("--weights", type=str, help="사전 학습 가중치 경로", default=None)
+    # parser.add_argument("--lr", type=float, help="학습률", default=None)
 
     return parser.parse_args()
 
@@ -421,7 +424,6 @@ def main():
 
     project_name = train_cfg["project_name"]
     base_dir = train_cfg["checkpoint_base_dir"]
-    checkpoint_base_dir = os.path.join(base_dir, f"seed-{SEED}-version-{use_augmentation}")
 
     base_lr = float(train_cfg.get("base_lr", 1e-4))
     head_lr = float(train_cfg.get("head_lr", 1e-3))
@@ -436,21 +438,28 @@ def main():
 
     if args.model:
         MODEL_NAME = args.model
-    if args.alpha is not None:
-        # 예시: 이후 코드에서 사용하려면 별도로 변수 할당
-        alpha_value = args.alpha
-    if args.quant_mode:
-        quant_mode = args.quant_mode  # PTQ 또는 QAT
-    else:
-        quant_mode = None
-    if args.weights:
-        weights_path = args.weights
-    else:
-        weights_path = None
+    # if args.alpha is not None:
+    #     alpha_value = args.alpha
+    # if args.quant_mode:
+    #     quant_mode = args.quant_mode  # PTQ 또는 QAT
+    # else:
+    #     quant_mode = None
+    # if args.weights:
+    #     weights_path = args.weights
+    # else:
+    #     weights_path = None
+    # if args.lr is not None:
+    #     base_lr = args.lr
+    if args.augment is not None:
+        use_augmentation = args.augment
     if args.epochs is not None:
         EPOCHS = args.epochs
-    if args.lr is not None:
-        base_lr = args.lr
+    if args.batch_size is not None:
+        BATCH_SIZE = args.batch_size
+    if args.patience is not None:
+        PATIENCE = args.patience
+
+    checkpoint_base_dir = os.path.join(base_dir, f"seed-{SEED}-version-{use_augmentation}")
 
     wandb.login(key=os.getenv("WANDB_API_KEY"))
 

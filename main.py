@@ -108,7 +108,6 @@ def main():
     project_name        = train_cfg["project_name"]
     use_dataparallel    = train_cfg["use_dataparallel"]
     base_dir = train_cfg["checkpoint_base_dir"]
-    checkpoint_base_dir = os.path.join(base_dir, f"seed-{SEED}-version-{use_augmentation}")
 
     # (기타 hyperparam)
     base_lr   = float(train_cfg.get("base_lr", 1e-4))
@@ -133,6 +132,8 @@ def main():
         BATCH_SIZE = args.batch_size
     if args.patience is not None:
         PATIENCE = args.patience
+
+    checkpoint_base_dir = os.path.join(base_dir, f"seed-{SEED}-version-{use_augmentation}")
 
     # 2) 시드 고정
     seed_everything(SEED)

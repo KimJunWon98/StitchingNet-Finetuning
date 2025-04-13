@@ -82,7 +82,7 @@ dataset/
 모델을 학습하려면 다음 명령어를 사용합니다.
 
 ```bash
-python main.py --model mobilenetv3_small --alpha 0.75 --augment 1 --epochs 100 --batch-size 32 --patience 5
+python main.py --model mobilenetv1_100 --augment 1 --epochs 100 --batch-size 32 --patience 5
 ```
 
 ### 양자화 적용 예시
@@ -91,7 +91,7 @@ python main.py --model mobilenetv3_small --alpha 0.75 --augment 1 --epochs 100 -
 
 - **양자화**:
 ```bash
-python quantization-train.py --model mobilenetv3_small
+python quantization-train.py --model mobilenet_v2 --augment 2 --epochs 100 --batch-size 32 --patience 5
 ```
 
 ## 결과
