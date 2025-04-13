@@ -2,9 +2,9 @@ hyperparameters:
   # model_name: "timm_fuse_mobilenetv3_small_075" # 1. timm 모델에 fuse 적용하기
 
   # model_name: "timm_mobilenetv2_050"  # 2. timm 모델 가중치를 torchvision 모델에 맵핑, QAT Inference 시 성능이 안나오는 문제.
-  model_name: "timm_mobilenetv3_small_075"
+  # model_name: "timm_mobilenetv3_small_075"
   
-  # model_name: "mobilenet_v3_large" # 3. torchvision 사전학습 모델  , QAT Inference 시에 문제 없음.
+  model_name: "mobilenet_v3_large" # 3. torchvision 사전학습 모델  , QAT Inference 시에 문제 없음.
   # model_name: "mobilenet_v2"
 
   # model_name: "mobilenet_v2_custom_025" # 4. torchvision 알파 값 커스텀 모델, 사전학습 X
@@ -30,10 +30,10 @@ data:
   root: "./dataset/StitchingNet"
   train_ratio: 0.7
   val_ratio: 0.15
-  use_augmentation: 2
+  use_augmentation: 0
 
 training:
-  project_name: "StitchingNet-FinuTuning-QAT-custom"
+  project_name: "StitchingNet-Quantization"
   use_dataparallel: false # (true로 설정 시, GPU가 2개 이상인 경우 DataParallel 적용)
   checkpoint_base_dir: "./checkpoint/quantization/"   # 체크포인트를 저장할 기본 경로
   freeze_layers: false # 모든 파라미터(requires_grad=True)
