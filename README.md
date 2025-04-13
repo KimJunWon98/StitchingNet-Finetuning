@@ -6,7 +6,7 @@
 
 MobileNet 시리즈를 포함한 다양한 CNN 구조를 평가하고, 정확도를 유지하면서도 모델 크기와 연산량을 최소화하기 위해 PTQ/QAT 양자화, 알파(Width Multiplier) 조절 등의 기법을 적용하였습니다. 또한 Pruning 및 Knowledge Distillation 기법들을 추가적으로 적용해볼 예정입니다.
 
----
+***
 
 ## 데이터셋 정보
 
@@ -18,7 +18,7 @@ Kaggle에 공개된 [**StitchingNet 데이터셋**](https://www.kaggle.com/datas
 
 
 
----
+***
 
 ## 모델 경량화 기법
 
@@ -34,7 +34,7 @@ Kaggle에 공개된 [**StitchingNet 데이터셋**](https://www.kaggle.com/datas
 - **Pruning**: 중요하지 않은 채널을 제거하는 Pruning 기법을 활용하여 모델 크기 및 연산량 감소.
 - **Knowledge Distillation (KD)**: 성능이 좋은 큰 모델(Teacher)의 지식을 작은 모델(Student)로 이전하여 성능 향상.
 
----
+***
 
 ## 데이터 증강 기법
 
@@ -49,7 +49,7 @@ Kaggle에 공개된 [**StitchingNet 데이터셋**](https://www.kaggle.com/datas
 
 ![StitchingNet Data Augmentation](./assets/augmentation.png)
 
----
+***
 
 ## 프로젝트 사용 방법
 
@@ -100,7 +100,7 @@ python main.py --model mobilenetv1_100 --augment 1 --epochs 100 --batch-size 32 
 python quantization-train.py --model mobilenet_v2 --augment 2 --epochs 100 --batch-size 32 --patience 5
 ```
 
----
+***
 
 ## Fine-tuning 결과
 
@@ -152,7 +152,7 @@ python quantization-train.py --model mobilenet_v2 --augment 2 --epochs 100 --bat
 
 
 
----
+***
 
 ## Quantization 결과
 
