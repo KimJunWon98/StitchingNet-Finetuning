@@ -1,3 +1,4 @@
+import argparse
 import copy
 import datetime
 import os
@@ -367,14 +368,29 @@ def fuse_mobilenetv2_timm(model: nn.Module):
     fuse_modules(model, ["conv_head", "bn2", "act2"], inplace=True)
 
 
+
 # ---------------------------------------------------------------------------
 # Main Training Script
 # ---------------------------------------------------------------------------
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Quantization Training Pipeline")
+    parser.add_argument("--model", type=str, help="모델 이름 (예: mobilenetv3_small)")
+    parser.add_argument("--alpha", type=float, help="alpha 값", default=None)
+    parser.add_argument("--quant-mode", type=str, choices=["PTQ", "QAT"], help="양자화 모드", default=None)
+    parser.add_argument("--weights", type=str, help="사전 학습 가중치 경로", default=None)
+    parser.add_argument("--epochs", type=int, help="학습 epoch 수", default=None)
+    parser.add_argument("--lr", type=float, help="학습률", default=None)
+
+    return parser.parse_args()
+
 
 def main():
     """Main entry point: PTQ + QAT training pipeline."""
 
     global QENGINE  # 전역 변수 수정
+
+    args = parse_args()
 
     # --------------------------- Configuration ---------------------------
     with open("config-qat.yaml", "r", encoding="utf-8") as f:
@@ -417,6 +433,25 @@ def main():
     seed_everything(SEED)
 
     load_dotenv()
+
+    if args.model:
+        MODEL_NAME = args.model
+    if args.alpha is not None:
+        # 예시: 이후 코드에서 사용하려면 별도로 변수 할당
+        alpha_value = args.alpha
+    if args.quant_mode:
+        quant_mode = args.quant_mode  # PTQ 또는 QAT
+    else:
+        quant_mode = None
+    if args.weights:
+        weights_path = args.weights
+    else:
+        weights_path = None
+    if args.epochs is not None:
+        EPOCHS = args.epochs
+    if args.lr is not None:
+        base_lr = args.lr
+
     wandb.login(key=os.getenv("WANDB_API_KEY"))
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

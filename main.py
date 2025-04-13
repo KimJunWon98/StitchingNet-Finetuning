@@ -1,4 +1,5 @@
 # main.py
+import argparse
 import yaml
 import wandb
 import torch
@@ -68,6 +69,18 @@ def get_model_statistics(model, input_size=(1, 3, 224, 224)):
     return param_count, model_size_mb, flops
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="Train model with command-line arguments overriding config.yaml")
+    parser.add_argument("--model", type=str, help="모델 이름 (예: mobilenetv3_small)")
+    parser.add_argument("--alpha", type=float, help="alpha 값", default=None)
+    parser.add_argument("--augment", type=int, choices=[0,1,2,3], help="데이터 증강 Version (0, 1, 2, 3)", default=None)
+    parser.add_argument("--epochs", type=int, help="학습 epoch 수", default=None)
+    parser.add_argument("--batch-size", type=int, help="배치 크기", default=None)
+    parser.add_argument("--patience", type=int, help="Early stopping patience", default=None)
+
+    return parser.parse_args()
+
+
 def main():
     # 1) YAML config 파일 읽기
     with open("config.yaml", "r") as f:
@@ -103,6 +116,23 @@ def main():
     use_scheduler = train_cfg.get("use_scheduler", False)
     T_max     = train_cfg.get("T_max", EPOCHS)
     eta_min   = float(train_cfg.get("eta_min", 1e-6))
+
+
+
+    args = parse_args()
+    if args.model:   # 단일 모델로 실행할 경우, YAML의 model_list 대신 CLI 입력 사용
+        MODEL_LIST = [args.model]
+    if args.alpha is not None:
+        # 예시: 이후 코드에서 필요하다면 변수로 처리
+        alpha_value = args.alpha
+    if args.augment is not None:
+        use_augmentation = args.augment
+    if args.epochs is not None:
+        EPOCHS = args.epochs
+    if args.batch_size is not None:
+        BATCH_SIZE = args.batch_size
+    if args.patience is not None:
+        PATIENCE = args.patience
 
     # 2) 시드 고정
     seed_everything(SEED)
