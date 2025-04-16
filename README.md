@@ -14,6 +14,7 @@ Kaggle에 공개된 [**StitchingNet 데이터셋**](https://www.kaggle.com/datas
 학습을 위해 데이터셋을 훈련, 검증, 테스트 세트로 나누고 다양한 데이터 증강 기법을 적용하였습니다.
 
 ![StitchingNet 데이터셋](./assets/StitchingNet-cover.png)
+![StitchingNet-cover](https://github.com/user-attachments/assets/78ec00ef-bff5-44da-9063-1c377cb82067)
 
 
 
@@ -47,6 +48,7 @@ Kaggle에 공개된 [**StitchingNet 데이터셋**](https://www.kaggle.com/datas
 실험 결과 Version 1과 Version 2가 가장 우수한 성능을 나타냈습니다.
 
 ![StitchingNet Data Augmentation](./assets/augmentation.png)
+![augmentation (3)](https://github.com/user-attachments/assets/a039e6eb-7e36-4601-b196-ae545b739d35)
 
 ***
 
