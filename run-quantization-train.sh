@@ -32,7 +32,7 @@ for model in "${models[@]}"; do
     echo "[START] Model: ${model} | Augment mode: ${aug}"
     echo "----------------------------------------------"
 
-    python /workspace/hojeon/git-repo/StitchingNet-Finetuning/quantization-train.py \
+    python quantization-train.py \
       --model "${model}" \
       --augment "${aug}" \
     #   --epochs "${EPOCHS}" \
@@ -44,3 +44,6 @@ for model in "${models[@]}"; do
     echo
   done
 done
+
+
+# nohup ./run-quantization-train.sh > experiments_version0.log 2>&1 &
