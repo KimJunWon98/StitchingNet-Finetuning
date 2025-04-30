@@ -15,8 +15,8 @@ hyperparameters:
   # model_name: "mobilenet_v3_small_custom_050"
   seed : 2025
   batch_size: 32
-  epochs: 300
-  patience: 15
+  epochs: 3000
+  patience: 50
   max_checkpoints : 3
   num_workers: 8
   layers:
@@ -33,9 +33,9 @@ data:
   use_augmentation: 0
 
 training:
-  project_name: "StitchingNet-Quantization"
+  project_name: "StitchingNet-Quantization-patience-30"
   use_dataparallel: false # (true로 설정 시, GPU가 2개 이상인 경우 DataParallel 적용)
-  checkpoint_base_dir: "./checkpoint/quantization/"   # 체크포인트를 저장할 기본 경로
+  checkpoint_base_dir: "./checkpoint/quantization-patience-30/"   # 체크포인트를 저장할 기본 경로
   freeze_layers: false # 모든 파라미터(requires_grad=True)
 
   # 아래 두 파라미터가 base_lr, head_lr
@@ -44,5 +44,5 @@ training:
 
   # 스케줄러 사용 여부 및 설정 (cosine annealing)
   use_scheduler: true
-  T_max: 75      # 보통 epoch 수만큼 지정
+  T_max: 200      # 보통 epoch 수만큼 지정
   eta_min: 1e-7  # learning rate가 내려갈 최소값
