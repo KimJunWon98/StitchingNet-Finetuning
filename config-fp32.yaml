@@ -10,8 +10,8 @@ hyperparameters:
   model_name: "mobilenet_v3_large_100"   # timm·torchvision 둘 다 인식
   seed: 2025
   batch_size: 32
-  epochs: 100
-  patience: 10
+  epochs: 10000
+  patience: 35
   max_checkpoints: 3
   num_workers: 8
 
@@ -24,7 +24,7 @@ data:
 training:
   project_name: "StitchingNet-FP32"
   use_dataparallel: false      # GPU가 여러 개면 true 로 변경 가능
-  checkpoint_base_dir: "./checkpoint/fp32/"
+  checkpoint_base_dir: "./checkpoint/fp32-patience35/"
   freeze_layers: false         # 백본 고정 여부
 
   # 학습률 설정
