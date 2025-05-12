@@ -6,24 +6,20 @@ models=(
   "mobilenet_v3_large"
   "mobilenet_v3_custom_075"
   "mobilenet_v3_custom_050"
+  "mobilenet_v3_custom_035"
   "mobilenet_v3_custom_025"
   "mobilenet_v2"
   "mobilenet_v2_custom_075"
   "mobilenet_v2_custom_050"
+  "mobilenet_v2_custom_035"
   "mobilenet_v2_custom_025"
-  "mobilenet_v3_small_custom_100"
-  "mobilenet_v3_small_custom_075"
-  "mobilenet_v3_small_custom_050"
-  "mobilenet_v3_small_custom_025"
-)
-
-models=(
   "mobilenet_v3_small_custom_100"
   "mobilenet_v3_small_custom_075"
   "mobilenet_v3_small_custom_050"
   "mobilenet_v3_small_custom_035"
   "mobilenet_v3_small_custom_025"
 )
+
 
 # 2) augmentation 모드 리스트 (0=off, 1~3=각각 다른 설정)
 augments=(0 1 2 3)
