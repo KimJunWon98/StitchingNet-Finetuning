@@ -259,18 +259,25 @@ def main() -> None:
     wandb.log({"Test Loss": test_loss, "Test Acc": test_acc})
 
     # --------------------------- Inference Timing -------------------
+    # 1) 모델을 CPU로 옮긴 뒤
+    model_cpu = model.to("cpu").eval()
+
+    # 2) device="cpu" 로 지정
     inf_loss, inf_acc, inf_time = evaluate_model_performance(
-        model, inference_loader, device=device
+        model_cpu,
+        inference_loader,
+        device="cpu"         # ← GPU가 있더라도 CPU로 실행
     )
+
     print(
-        f"[FP32 Inference] Loss={inf_loss:.4f}, Acc={inf_acc:.4f}, "
-        f"Single‑sample Time={inf_time * 1000:.3f} ms"
+        f"[FP32 Inference @ CPU] Loss={inf_loss:.4f}, Acc={inf_acc:.4f}, "
+        f"Single-sample Time={inf_time * 1000:.3f} ms"
     )
     wandb.log(
         {
-            "Infer Loss": inf_loss,
-            "Infer Acc": inf_acc,
-            "Infer Time (ms)": inf_time * 1000,
+            "Infer Loss (CPU)": inf_loss,
+            "Infer Acc (CPU)": inf_acc,
+            "Infer Time (ms, CPU)": inf_time * 1000,
         }
     )
 

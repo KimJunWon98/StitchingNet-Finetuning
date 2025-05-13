@@ -23,10 +23,10 @@ models=(
 
 # 2) augmentation 모드 리스트 (0=off, 1~3=각각 다른 설정)
 augments=(1 2)
-
+augments=(0)
 # 3) (선택) 공통 파라미터
-# EPOCHS=100
-# BATCH_SIZE=32
+EPOCHS=1
+BATCH_SIZE=32
 # CONFIG="config-fp32.yaml"   # 새 FP32 설정 파일
 
 # 4) 실행 루프
@@ -39,8 +39,8 @@ for model in "${models[@]}"; do
     python FP32-train.py \
       --model "${model}" \
       --augment "${aug}" \
-      # --epochs "${EPOCHS}" \
-      # --batch-size "${BATCH_SIZE}" \
+      --epochs "${EPOCHS}" \
+      --batch-size "${BATCH_SIZE}" \
       # --config "${CONFIG}"
 
     echo "[DONE ] Model: ${model} | Augment mode: ${aug}"
