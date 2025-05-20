@@ -22,8 +22,7 @@ models=(
 )
 
 # 2) augmentation 모드 리스트 (0=off, 1~3=각각 다른 설정)
-augments=(1 2)
-augments=(0)
+augments=(1)
 # 3) (선택) 공통 파라미터
 EPOCHS=10000
 BATCH_SIZE=32
@@ -51,3 +50,4 @@ done
 
 # 실행 예시 (백그라운드 로그 저장):
 # nohup ./run-fp32-train.sh > experiments_fp32.log 2>&1 &
+# CUDA_VISIBLE_DEVICES=0 nohup ./run-fp32-train.sh > experiments_fp32_aug1.log 2>&1 &

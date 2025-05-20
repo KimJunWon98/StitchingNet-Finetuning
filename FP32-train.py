@@ -188,6 +188,22 @@ def main() -> None:
 
     # --------------------------- Model ------------------------------
     model = create_model_by_name(MODEL_NAME, num_classes=len(classes))
+
+    checkpoint_dir = os.path.join(
+        train_cfg["checkpoint_base_dir"],   # → "./checkpoint/fp32-patience-35-aug2/"
+        f"seed-{SEED}-aug-{AUG_VERSION}"    # → "seed-2025-aug-0"
+    )
+    best_ckpt_path = os.path.join(checkpoint_dir, f"{MODEL_NAME}__best.pt")
+
+    # ① ─────────── Resume if best checkpoint exists ────────────
+    if os.path.exists(best_ckpt_path):
+        print(f"→ Found existing best checkpoint: {best_ckpt_path}")
+        state_dict = torch.load(best_ckpt_path, map_location=device)
+        model.load_state_dict(state_dict)
+        print("  Loaded weights – training will resume from this point.")
+    else:
+        print("→ No previous checkpoint found – training from scratch.")
+
     if FREEZE_LAYERS:
         for p in model.parameters():
             p.requires_grad = False
