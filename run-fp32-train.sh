@@ -25,7 +25,7 @@ models=(
 augments=(1 2)
 augments=(0)
 # 3) (선택) 공통 파라미터
-EPOCHS=1
+EPOCHS=10000
 BATCH_SIZE=32
 # CONFIG="config-fp32.yaml"   # 새 FP32 설정 파일
 

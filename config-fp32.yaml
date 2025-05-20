@@ -22,9 +22,9 @@ data:
   use_augmentation: 0 # 증강 버전 (0 = 없음)
 
 training:
-  project_name: "StitchingNet-FP32-epoch10"
+  project_name: "StitchingNet-FP32-patience-35"
   use_dataparallel: false      # GPU가 여러 개면 true 로 변경 가능
-  checkpoint_base_dir: "./checkpoint/fp32-epoch10/"
+  checkpoint_base_dir: "./checkpoint/fp32-patience-35/"
   freeze_layers: false         # 백본 고정 여부
 
   # 학습률 설정
