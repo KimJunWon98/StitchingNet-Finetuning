@@ -16,7 +16,7 @@ hyperparameters:
   seed : 2025
   batch_size: 32
   epochs: 30000
-  patience: 35
+  patience: 50
   max_checkpoints : 3
   num_workers: 8
   layers:
@@ -27,15 +27,15 @@ quantization:
   qengine: "fbgemm"
 
 data:
-  root: "./dataset/StitchingNet"
+  root: "./dataset/StitchingNet-ver2"
   train_ratio: 0.7
   val_ratio: 0.15
   use_augmentation: 0
 
 training:
-  project_name: "StitchingNet-Quantization-patience-35"
+  project_name: "StitchingNet-ver2-Quantization-patience-50"
   use_dataparallel: false # (true로 설정 시, GPU가 2개 이상인 경우 DataParallel 적용)
-  checkpoint_base_dir: "./checkpoint/quantization-patience-35/"   # 체크포인트를 저장할 기본 경로
+  checkpoint_base_dir: "./checkpoint/StitchingNet-ver2-quantization-patience-50/"   # 체크포인트를 저장할 기본 경로
   freeze_layers: false # 모든 파라미터(requires_grad=True)
 
   # 아래 두 파라미터가 base_lr, head_lr

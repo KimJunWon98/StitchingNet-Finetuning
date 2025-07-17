@@ -23,7 +23,7 @@ models=(
 
 # 2) augmentation 모드 리스트 (0=off, 1~3=각각 다른 설정)
 augments=(0 1 2 3)
-augments=(1 2 3)
+augments=(0 1 2 3)
 
 # # 3) 공통 파라미터
 # EPOCHS=30

@@ -205,36 +205,88 @@ class DefectDataset(Dataset):
         return image, label, path
 
 
-def make_all_samples(root):
+# StitchingNet version2
+def make_all_samples(root: str):
     """
-    data_root 디렉토리 구조를 훑어서 (img_path, defect_label_idx) 형태의 전체 samples와
-    classes(결함종류 목록), class_to_idx를 생성해 반환
+    root ─┐
+          ├─ Bobbin thread pulling up/
+          ├─ Broken stitch/
+          ├─ …
+          └─ Twisted/
+               ├─ img_001.jpg
+               └─ …
+
+    (img_path, label_idx) 리스트와
+    classes, class_to_idx 딕셔너리를 반환
     """
-    samples = []
-    defect_set = set()
 
-    # 1) root 내부의 모든 fabric 폴더 → defect 폴더 → 이미지
-    for fabric in os.listdir(root):
-        fabric_path = os.path.join(root, fabric)
-        if os.path.isdir(fabric_path):
-            for defect in os.listdir(fabric_path):
-                defect_path = os.path.join(fabric_path, defect)
-                if os.path.isdir(defect_path):
-                    defect_set.add(defect)
-                    for fname in os.listdir(defect_path):
-                        if is_image_file(fname):
-                            img_path = os.path.join(defect_path, fname)
-                            samples.append((img_path, defect))
-
-    # 2) 클래스 목록, 라벨 인덱스 매핑
-    classes = sorted(list(defect_set))
+    # 1) 클래스(폴더) 이름 — 고정 12종
+    classes = [
+        "Bobbin thread pulling up",
+        "Broken stitch",
+        "Crooked seam",
+        "Needle mark",
+        "Overlapped stitch",
+        "Pleated fabric",
+        "Puckering",
+        "Ready_Normal",
+        "Skipped stitch",
+        "Stain_and_Damage",
+        "Thread sagging",
+        "Twisted",
+    ]
     class_to_idx = {cls: idx for idx, cls in enumerate(classes)}
 
-    # 3) samples에 라벨 인덱스 적용
-    #    [(img_path, label_idx), ...]
-    samples = [(path, class_to_idx[label]) for (path, label) in samples]
+    # 2) 모든 이미지 탐색
+    samples = []
+    for cls in classes:
+        cls_dir = os.path.join(root, cls)
+        if not os.path.isdir(cls_dir):
+            raise FileNotFoundError(f"폴더가 없습니다: {cls_dir}")
+
+        # 하위 폴더가 더 있을 수도 있으니 os.walk 사용
+        for dirpath, _, filenames in os.walk(cls_dir):
+            for fname in filenames:
+                if is_image_file(fname):
+                    img_path = os.path.join(dirpath, fname)
+                    samples.append((img_path, class_to_idx[cls]))
+
+    if len(samples) == 0:
+        raise RuntimeError(f"No images found under {root}")
 
     return samples, classes
+    # return samples, classes, class_to_idx
+
+# def make_all_samples(root):
+#     """
+#     data_root 디렉토리 구조를 훑어서 (img_path, defect_label_idx) 형태의 전체 samples와
+#     classes(결함종류 목록), class_to_idx를 생성해 반환
+#     """
+#     samples = []
+#     defect_set = set()
+
+#     # 1) root 내부의 모든 fabric 폴더 → defect 폴더 → 이미지
+#     for fabric in os.listdir(root):
+#         fabric_path = os.path.join(root, fabric)
+#         if os.path.isdir(fabric_path):
+#             for defect in os.listdir(fabric_path):
+#                 defect_path = os.path.join(fabric_path, defect)
+#                 if os.path.isdir(defect_path):
+#                     defect_set.add(defect)
+#                     for fname in os.listdir(defect_path):
+#                         if is_image_file(fname):
+#                             img_path = os.path.join(defect_path, fname)
+#                             samples.append((img_path, defect))
+
+#     # 2) 클래스 목록, 라벨 인덱스 매핑
+#     classes = sorted(list(defect_set))
+#     class_to_idx = {cls: idx for idx, cls in enumerate(classes)}
+
+#     # 3) samples에 라벨 인덱스 적용
+#     #    [(img_path, label_idx), ...]
+#     samples = [(path, class_to_idx[label]) for (path, label) in samples]
+
+#     return samples, classes
 
 def stratified_split(samples, train_ratio=0.7, val_ratio=0.15):
     """
