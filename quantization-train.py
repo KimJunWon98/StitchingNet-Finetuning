@@ -1,11 +1,8 @@
 import argparse
 import copy
-import datetime
 import os
 import re
 import time
-from collections import OrderedDict
-from zoneinfo import ZoneInfo
 
 import numpy as np
 import torch
@@ -71,43 +68,43 @@ def create_model_by_name(
 ) -> nn.Module:
 
 
-    # 1) timm_ prefix  →  timm 모델에 fuse 적용
+    # # 1) timm_ prefix  →  timm 모델에 fuse 적용
+    # if model_name.startswith("timm_fuse_"):
+    #     # strip leading tag  e.g. "timm_fuse_mobilenetv3_small_050"
+    #     timm_name = model_name[len("timm_fuse_"):]      # "mobilenetv3_small_050"
+    #     model = load_fused_timm_model(timm_name, pretrained=True,num_classes=num_classes)
+    #     model.train()
 
-    if model_name.startswith("timm_fuse_"):
-        # strip leading tag  e.g. "timm_fuse_mobilenetv3_small_050"
-        timm_name = model_name[len("timm_fuse_"):]      # "mobilenetv3_small_050"
-        model = load_fused_timm_model(timm_name, pretrained=True,num_classes=num_classes)
-        model.train()
+
+    # # 2) timm 모델의 가중치 torch vision에 load 하기.
+    # # 이름 매칭이 안되어서 순서대로 사이즈 맞으면 넣고 있는데, 30% 정도 밖에 load가 안된다.
+    # elif model_name.startswith("timm_mobilenetv2_"):
+    #     # ex) "timm_mobilenetv2_050" → "050"
+    #     width = re.search(r"_([0-9]{3})$", model_name).group(1)
+    #     alpha = int(width) / 100.0                       # 50 → 0.50
+    #     timm_variant = f"mobilenetv2_{width}"            # "mobilenetv2_050"
+
+    #     model = timm_mobilenet_v2_custom(
+    #         alpha=alpha,
+    #         timm_pretrained=timm_variant,
+    #         quantize=False,
+    #     )
+
+    # elif model_name.startswith("timm_mobilenetv3_small_"):
+    #     width = re.search(r"_([0-9]{3})$", model_name).group(1)
+    #     alpha = int(width) / 100.0                       # 50 → 0.50
+
+    #     model = timm_mobilenet_v3_small_custom(
+    #         alpha=alpha,
+    #         pretrained="timm",
+    #     )
 
 
-    # 2) timm 모델의 가중치 torch vision에 load 하기.
-    # 이름 매칭이 안되어서 순서대로 사이즈 맞으면 넣고 있는데, 30% 정도 밖에 load가 안된다.
-
-    elif model_name.startswith("timm_mobilenetv2_"):
-        # ex) "timm_mobilenetv2_050" → "050"
-        width = re.search(r"_([0-9]{3})$", model_name).group(1)
-        alpha = int(width) / 100.0                       # 50 → 0.50
-        timm_variant = f"mobilenetv2_{width}"            # "mobilenetv2_050"
-
-        model = timm_mobilenet_v2_custom(
-            alpha=alpha,
-            timm_pretrained=timm_variant,
-            quantize=False,
-        )
-
-    elif model_name.startswith("timm_mobilenetv3_small_"):
-        width = re.search(r"_([0-9]{3})$", model_name).group(1)
-        alpha = int(width) / 100.0                       # 50 → 0.50
-
-        model = timm_mobilenet_v3_small_custom(
-            alpha=alpha,
-            pretrained="timm",
-        )
 
 
     # 3) torch vision 양자화 모델의 alpha 값 조절, 사전학습된 가중치는 존재하지 않음
 
-    elif model_name.startswith("mobilenet_v2_custom"):
+    if model_name.startswith("mobilenet_v2_custom"):
         alpha = float(model_name.split("_")[3]) / 100
         model = mobilenet_v2_custom(alpha=alpha, quantize=False, weights=None)
 
@@ -575,88 +572,88 @@ def main():
     )
     wandb.finish()
 
-    # # --------------------------------------------------------------------
-    # #  (B) QAT Model (model2)
-    # # --------------------------------------------------------------------
-    # model2 = create_model_by_name(MODEL_NAME, num_classes=len(classes), freeze=freeze_layers)
-    # model2.to(device)
+    # --------------------------------------------------------------------
+    #  (B) QAT Model (model2)
+    # --------------------------------------------------------------------
+    model2 = create_model_by_name(MODEL_NAME, num_classes=len(classes), freeze=freeze_layers)
+    model2.to(device)
 
-    # # --------------------------- W&B (QAT) ------------------------------
-    # wandb.init(project=project_name, name=f"{MODEL_NAME}_QAT")
-    # wandb.config.update(
-    #     {
-    #         "model_name": f"{MODEL_NAME}_QAT",
-    #         "batch_size": BATCH_SIZE,
-    #         "use_augmentation": use_augmentation,
-    #         "freeze_layers": freeze_layers,
-    #         "seed": SEED,
-    #         "qengine": QENGINE,
-    #     }
-    # )
+    # --------------------------- W&B (QAT) ------------------------------
+    wandb.init(project=project_name, name=f"{MODEL_NAME}_QAT")
+    wandb.config.update(
+        {
+            "model_name": f"{MODEL_NAME}_QAT",
+            "batch_size": BATCH_SIZE,
+            "use_augmentation": use_augmentation,
+            "freeze_layers": freeze_layers,
+            "seed": SEED,
+            "qengine": QENGINE,
+        }
+    )
 
-    # # Load best FP32 weights
-    # model2.load_state_dict(torch.load(best_model_path, map_location=device))
+    # Load best FP32 weights
+    model2.load_state_dict(torch.load(best_model_path, map_location=device))
 
-    # # Quick FP32 evaluation
-    # model2.eval()
-    # correct = total = total_loss = 0.0
-    # with torch.no_grad():
-    #     for inputs, labels, _ in testloader:
-    #         inputs, labels = inputs.to(device), labels.to(device)
-    #         outputs = model2(inputs)
-    #         _, preds = torch.max(outputs, 1)
-    #         correct += (preds == labels).sum().item()
-    #         total += labels.size(0)
-    #         total_loss += criterion(outputs, labels).item() * labels.size(0)
+    # Quick FP32 evaluation
+    model2.eval()
+    correct = total = total_loss = 0.0
+    with torch.no_grad():
+        for inputs, labels, _ in testloader:
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model2(inputs)
+            _, preds = torch.max(outputs, 1)
+            correct += (preds == labels).sum().item()
+            total += labels.size(0)
+            total_loss += criterion(outputs, labels).item() * labels.size(0)
 
-    # print(
-    #     f"[FP32 - model2] Test Loss={total_loss / total:.4f}, Acc={correct / total:.4f}"
-    # )
-    # wandb.log(
-    #     {
-    #         "Test Loss (FP32)_model2": total_loss / total,
-    #         "Test Acc (FP32)_model2": correct / total,
-    #     }
-    # )
+    print(
+        f"[FP32 - model2] Test Loss={total_loss / total:.4f}, Acc={correct / total:.4f}"
+    )
+    wandb.log(
+        {
+            "Test Loss (FP32)_model2": total_loss / total,
+            "Test Acc (FP32)_model2": correct / total,
+        }
+    )
 
-    # # QAT fine‑tuning setup
-    # optimizer_qat = optim.Adam(filter(lambda p: p.requires_grad, model2.parameters()), lr=base_lr)
-    # scheduler_qat = (
-    #     optim.lr_scheduler.CosineAnnealingLR(optimizer_qat, T_max=5, eta_min=eta_min)
-    #     if use_scheduler
-    #     else None
-    # )
+    # QAT fine‑tuning setup
+    optimizer_qat = optim.Adam(filter(lambda p: p.requires_grad, model2.parameters()), lr=base_lr)
+    scheduler_qat = (
+        optim.lr_scheduler.CosineAnnealingLR(optimizer_qat, T_max=5, eta_min=eta_min)
+        if use_scheduler
+        else None
+    )
 
-    # # --------------------------- QAT Fine‑Tuning ------------------------
-    # model2_qat = apply_qat_training(
-    #     model=model2,
-    #     trainloader=trainloader,
-    #     valloader=valloader,
-    #     test_inference_loader=test_inference_loader,
-    #     device=device,
-    #     criterion=criterion,
-    #     optimizer=optimizer_qat,
-    #     scheduler=scheduler_qat,
-    #     epochs=20,
-    # )
+    # --------------------------- QAT Fine‑Tuning ------------------------
+    model2_qat = apply_qat_training(
+        model=model2,
+        trainloader=trainloader,
+        valloader=valloader,
+        test_inference_loader=test_inference_loader,
+        device=device,
+        criterion=criterion,
+        optimizer=optimizer_qat,
+        scheduler=scheduler_qat,
+        epochs=20,
+    )
 
-    # # --------------------------- INT8 Conversion -----------------------
-    # model2_qat.eval().to("cpu")
-    # torch.backends.quantized.engine = QENGINE
-    # qat_int8_model = convert(model2_qat, inplace=False)
+    # --------------------------- INT8 Conversion -----------------------
+    model2_qat.eval().to("cpu")
+    torch.backends.quantized.engine = QENGINE
+    qat_int8_model = convert(model2_qat, inplace=False)
 
-    # qat_loss, qat_acc, qat_time = evaluate_model_performance(qat_int8_model, test_inference_loader, device="cpu")
-    # print(
-    #     f"[QAT Inference] Loss={qat_loss:.4f}, Acc={qat_acc:.4f}, "
-    #     f"Single‑sample Time={qat_time * 1000:.3f}ms"
-    # )
-    # wandb.log(
-    #     {
-    #         "QAT_Infer_Loss": qat_loss,
-    #         "QAT_Infer_Acc": qat_acc,
-    #         "QAT_Infer_Time(ms)": qat_time * 1000,
-    #     }
-    # )
+    qat_loss, qat_acc, qat_time = evaluate_model_performance(qat_int8_model, test_inference_loader, device="cpu")
+    print(
+        f"[QAT Inference] Loss={qat_loss:.4f}, Acc={qat_acc:.4f}, "
+        f"Single‑sample Time={qat_time * 1000:.3f}ms"
+    )
+    wandb.log(
+        {
+            "QAT_Infer_Loss": qat_loss,
+            "QAT_Infer_Acc": qat_acc,
+            "QAT_Infer_Time(ms)": qat_time * 1000,
+        }
+    )
     wandb.finish()
 
 
