@@ -1,3 +1,16 @@
+"""
+data_loader.py
+
+StitchingNet 데이터셋을 위한 DataLoader 생성 유틸리티.
+- 데이터셋 경로에서 샘플 및 클래스 목록 생성
+- 계층적/라벨 균형 분할로 train/val/test 세트 생성
+- 다양한 데이터 증강(transform) 버전 지원
+- PyTorch DataLoader 객체 반환
+
+사용 예시:
+    trainloader, valloader, testloader, classes = get_defect_data_loaders(...)
+"""
+
 from torch.utils.data import DataLoader
 from .dataset import (
     make_all_samples, stratified_split,
@@ -12,9 +25,22 @@ def get_defect_data_loaders(
     val_ratio=0.15,
     use_augmentation=0
 ):
+
     """
-    - use_augmentation=True면, 훈련용에만 수평/수직 뒤집기 등 증강이 들어감.
+    데이터셋을 로드하고 DataLoader를 반환합니다.
+    Args:
+        data_root: 데이터셋 경로
+        batch_size: 배치 크기
+        num_workers: DataLoader worker 수
+        train_ratio: 학습 데이터 비율
+        val_ratio: 검증 데이터 비율
+        use_augmentation: 증강 버전 (0~3)
+        shuffle_train: 학습 데이터 셔플 여부
+        drop_last: 마지막 배치 버릴지 여부
+    Returns:
+        trainloader, valloader, testloader, classes
     """
+
     # 1) 전체 samples와 classes 생성
     samples, classes = make_all_samples(data_root)
 
@@ -26,20 +52,17 @@ def get_defect_data_loaders(
     )
 
     # 3) transform 정의
-    if use_augmentation == 1:
-        print("version 1")
-        train_transform = get_train_transform_v1()
-    elif use_augmentation == 2:
-        print("version 2")
-        train_transform = get_train_transform_v2()     
-    elif use_augmentation == 3:
-        print("version 3")
-        train_transform = get_train_transform_v3()           
-    else:
-        # 증강 없이 기본 변환만
-        print("version 0")
-        train_transform = get_val_test_transform()
+    transform_map = {
+        1: (get_train_transform_v1, "version 1"),
+        2: (get_train_transform_v2, "version 2"),
+        3: (get_train_transform_v3, "version 3"),
+        0: (get_val_test_transform, "version 0"),
+    }
 
+    transform_func, version_name = transform_map.get(use_augmentation, transform_map[0])
+    print(version_name)
+
+    train_transform = transform_func()
     val_test_transform = get_val_test_transform()
 
     # 4) Dataset 생성
