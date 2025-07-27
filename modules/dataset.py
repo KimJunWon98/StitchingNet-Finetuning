@@ -1,7 +1,5 @@
 # dataset.py
 import os
-import random
-import torch
 from PIL import Image
 from collections import Counter
 from torchvision import transforms
@@ -13,10 +11,15 @@ import cv2
 from albumentations.pytorch import ToTensorV2
 
 
+IMG_SIZE = (224, 224)
+NORMALIZE_MEAN = (0.485, 0.456, 0.406)
+NORMALIZE_STD = (0.229, 0.224, 0.225)
 
+# 이미지 파일 확장자 체크 함수
 def is_image_file(filename):
     return any(filename.lower().endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff'])
 
+# Albumentations 변환을 PyTorch Dataset에서 사용하기 위한 래퍼 클래스
 class AlbumentationsTransform:
     """
     Albumentations 변환을 감싼 Wrapper.
@@ -41,145 +44,97 @@ class AlbumentationsTransform:
         return augmented["image"]
 
 
-# Albumentations 증강 정의
+# 증강 옵션을 조합하여 AlbumentationsTransform 객체를 생성
+def make_transform(
+    geo: bool = True,
+    color: bool = False,
+    blur_noise: bool = False,
+    normalize: bool = True,
+) -> AlbumentationsTransform:
+    ops = [A.Resize(*IMG_SIZE)]
+    if geo:
+        ops += [
+            A.HorizontalFlip(p=0.5),
+            A.VerticalFlip(p=0.5),
+            A.Rotate(
+                limit=15,
+                p=0.5,
+                interpolation=cv2.INTER_LANCZOS4,
+                border_mode=cv2.BORDER_REFLECT_101,
+            ),
+        ]
+    if color:
+        ops += [
+            A.HueSaturationValue(
+                hue_shift_limit=20,
+                sat_shift_limit=30,
+                val_shift_limit=20,
+                p=0.5,
+            ),
+            A.ColorJitter(
+                brightness=0.2,
+                contrast=0.2,
+                saturation=0.2,
+                hue=0.1,
+                p=0.5,
+            ),
+            A.RGBShift(
+                r_shift_limit=20,
+                g_shift_limit=20,
+                b_shift_limit=20,
+                p=0.5,
+            ),
+        ]
+    if blur_noise:
+        ops += [
+            A.OneOf([
+                A.MotionBlur(blur_limit=5, p=1.0),
+                A.GaussianBlur(blur_limit=(3,5), p=1.0),
+            ], p=0.35),
+            A.GaussNoise(
+                std_range=(0.01, 0.05),
+                mean_range=(0.0, 0.0),
+                per_channel=True,
+                noise_scale_factor=0.1,
+                p=0.35,
+            ),
+        ]
+    if normalize:
+        ops.append(A.Normalize(mean=NORMALIZE_MEAN, std=NORMALIZE_STD))
+    ops.append(ToTensorV2())
+    return AlbumentationsTransform(A.Compose(ops, p=1.0))
 
-# 1) 기하학적 변형만
+
+# --- 버전별 Transform 정의 ---------------------
 def get_train_transform_v1():
+    return make_transform(geo=True, color=False, blur_noise=False, normalize=True)
 
-    return AlbumentationsTransform(A.Compose([
-        # 기하학적 변형형
-        A.Resize(224, 224),
-        A.HorizontalFlip(p=0.5),
-        A.VerticalFlip(p=0.5),
-        A.Rotate(
-            limit=15, # ±15도 범위 회전
-            p=0.5,
-            interpolation=cv2.INTER_LANCZOS4,
-            border_mode=cv2.BORDER_REFLECT_101
-        ),
-        # Normalize & ToTensor
-        A.Normalize(mean=(0.485, 0.456, 0.406),
-                    std=(0.229, 0.224, 0.225)),
-        ToTensorV2()
-    ], p=1.0))
 
-# 2) 기하학적 변형 + 색상 변형
 def get_train_transform_v2():
+    return make_transform(geo=True, color=True, blur_noise=False, normalize=True)
 
-    return AlbumentationsTransform(A.Compose([
-        # 기하학적 변형형
-        A.Resize(224, 224),
-        A.HorizontalFlip(p=0.5),
-        A.VerticalFlip(p=0.5),
-        A.Rotate(
-            limit=15, # ±15도 범위 회전
-            p=0.5,
-            interpolation=cv2.INTER_LANCZOS4,
-            border_mode=cv2.BORDER_REFLECT_101
-        ),
 
-        # 색상 변형
-        # 1) Hue Saturation Value: 이미지의 색조, 채도, 명도 변경
-        A.HueSaturationValue(
-            hue_shift_limit=20,      # hue 변화 범위: -20 ~ +20
-            sat_shift_limit=30,      # saturation 변화 범위: -30 ~ +30
-            val_shift_limit=20,      # value 변화 범위: -20 ~ +20
-            p=0.5                    # 50% 확률로 적용
-        ),
-
-        # 2) Color Jitter: 밝기, 대비, 채도, 색조를 무작위로 조정
-        A.ColorJitter(
-            brightness=0.2,          # 밝기를 ±20% 조정
-            contrast=0.2,            # 대비를 ±20% 조정
-            saturation=0.2,          # 채도를 ±20% 조정
-            hue=0.1,                 # 색조를 ±10% 조정
-            p=0.5                    # 50% 확률로 적용
-        ),
-        
-        # 3) RGB Shift: R, G, B 채널 각각을 무작위로 이동
-        A.RGBShift(
-            r_shift_limit=20,        # R 채널 변화 범위: -20 ~ +20
-            g_shift_limit=20,        # G 채널 변화 범위: -20 ~ +20
-            b_shift_limit=20,        # B 채널 변화 범위: -20 ~ +20
-            p=0.5                    # 50% 확률로 적용
-        ),
-
-        A.Normalize(mean=(0.485, 0.456, 0.406),
-                    std=(0.229, 0.224, 0.225)),
-        ToTensorV2()
-    ], p=1.0))
-
-# 3) 기하학적 변형 + 색상 변형 + 블러 or 노이즈즈
 def get_train_transform_v3():
+    return make_transform(geo=True, color=True, blur_noise=True, normalize=True)
 
-    return AlbumentationsTransform(A.Compose([
-        # 기하학적 변형형
-        A.Resize(224, 224),
-        A.HorizontalFlip(p=0.5),
-        A.VerticalFlip(p=0.5),
-        A.Rotate(
-            limit=15, # ±15도 범위 회전
-            p=0.5,
-            interpolation=cv2.INTER_LANCZOS4,
-            border_mode=cv2.BORDER_REFLECT_101
-        ),
 
-        # 색상 변형
-        # 1) Hue Saturation Value: 이미지의 색조, 채도, 명도 변경
-        A.HueSaturationValue(
-            hue_shift_limit=20,      # hue 변화 범위: -20 ~ +20
-            sat_shift_limit=30,      # saturation 변화 범위: -30 ~ +30
-            val_shift_limit=20,      # value 변화 범위: -20 ~ +20
-            p=0.5                    # 50% 확률로 적용
-        ),
+def get_val_test_transform():
+    return make_transform(geo=False, color=False, blur_noise=False, normalize=True)
 
-        # 2) Color Jitter: 밝기, 대비, 채도, 색조를 무작위로 조정
-        A.ColorJitter(
-            brightness=0.2,          # 밝기를 ±20% 조정
-            contrast=0.2,            # 대비를 ±20% 조정
-            saturation=0.2,          # 채도를 ±20% 조정
-            hue=0.1,                 # 색조를 ±10% 조정
-            p=0.5                    # 50% 확률로 적용
-        ),
-        
-        # 3) RGB Shift: R, G, B 채널 각각을 무작위로 이동
-        A.RGBShift(
-            r_shift_limit=20,        # R 채널 변화 범위: -20 ~ +20
-            g_shift_limit=20,        # G 채널 변화 범위: -20 ~ +20
-            b_shift_limit=20,        # B 채널 변화 범위: -20 ~ +20
-            p=0.5                    # 50% 확률로 적용
-        ),
-        
 
-        # blur or noise
-        # MotionBlur, GaussianBlur,  GaussNoise
-        A.OneOf([
-            A.MotionBlur(blur_limit=5, p=1.0),
-            A.GaussianBlur(blur_limit=(3,5), p=1.0),
-        ], p=0.35),
+def get_train_transform_v1_no_norm():
+    return make_transform(geo=True, color=False, blur_noise=False, normalize=False)
 
-        A.GaussNoise(
-            std_range=(0.01, 0.05),
-            mean_range=(0.0, 0.0),
-            per_channel=True,
-            noise_scale_factor=0.1,
-            p=0.35
-        ),
 
-        A.Normalize(mean=(0.485, 0.456, 0.406),
-                    std=(0.229, 0.224, 0.225)),
-        ToTensorV2()
-    ], p=1.0))
+def get_train_transform_v2_no_norm():
+    return make_transform(geo=True, color=True, blur_noise=False, normalize=False)
 
-# 검증/테스트용 변환 (증강 없음)
-def get_val_test_transform():  # torch.Tensor 반환. (C, H, W)
-    return AlbumentationsTransform(A.Compose([
-        A.Resize(224, 224),
-        A.Normalize(mean=(0.485, 0.456, 0.406),
-                    std=(0.229, 0.224, 0.225)),
-        ToTensorV2()
-    ], p=1.0))
 
+def get_train_transform_v3_no_norm():
+    return make_transform(geo=True, color=True, blur_noise=True, normalize=False)
+
+
+# Dataset 클래스 정의
 class DefectDataset(Dataset):
     """
     특정 (image_path, label) 리스트와 transform을 받아, __getitem__에서 이미지를 로드·변환해 반환
@@ -288,6 +243,10 @@ def make_all_samples(root: str):
 
 #     return samples, classes
 
+
+
+
+# stratified_split 함수
 def stratified_split(samples, train_ratio=0.7, val_ratio=0.15):
     """
     전체 samples 리스트를 대상으로 클래스 라벨 분포를 유지한 상태로(train/val/test) 분할
@@ -350,118 +309,3 @@ def show_augmented_samples(dataset, n_samples=5):
         plt.title(f"Label: {dataset.classes[label]}")  
         plt.axis('off')
         plt.show()
-
-
-
-# 시각화용 normalize 적용 X 
-# 1) 기하학적 변형만 (No Norm 버전)
-
-def get_train_transform_v1_no_norm():
-    return AlbumentationsTransform(A.Compose([
-        A.Resize(224, 224),
-        A.HorizontalFlip(p=0.5),
-        A.VerticalFlip(p=0.5),
-        A.Rotate(
-            limit=15,  # ±15도 범위 회전
-            p=0.5,
-            interpolation=cv2.INTER_LANCZOS4,
-            border_mode=cv2.BORDER_REFLECT_101
-        ),
-        # A.Normalize(...) 제거
-        ToTensorV2()
-    ], p=1.0))
-
-
-# 2) 기하학적 변형 + 색상 변형 (No Norm 버전)
-def get_train_transform_v2_no_norm():
-    return AlbumentationsTransform(A.Compose([
-        A.Resize(224, 224),
-        A.HorizontalFlip(p=0.5),
-        A.VerticalFlip(p=0.5),
-        A.Rotate(
-            limit=15,
-            p=0.5,
-            interpolation=cv2.INTER_LANCZOS4,
-            border_mode=cv2.BORDER_REFLECT_101
-        ),
-
-        # Hue Saturation Value
-        A.HueSaturationValue(
-            hue_shift_limit=20,
-            sat_shift_limit=30,
-            val_shift_limit=20,
-            p=0.5
-        ),
-        # Color Jitter
-        A.ColorJitter(
-            brightness=0.2,
-            contrast=0.2,
-            saturation=0.2,
-            hue=0.1,
-            p=0.5
-        ),
-        # RGB Shift
-        A.RGBShift(
-            r_shift_limit=20,
-            g_shift_limit=20,
-            b_shift_limit=20,
-            p=0.5
-        ),
-        # A.Normalize(...) 제거
-        ToTensorV2()
-    ], p=1.0))
-
-
-# 3) 기하학적 변형 + 색상 변형 + 블러 or 노이즈 (No Norm 버전)
-def get_train_transform_v3_no_norm():
-    return AlbumentationsTransform(A.Compose([
-        A.Resize(224, 224),
-        A.HorizontalFlip(p=0.5),
-        A.VerticalFlip(p=0.5),
-        A.Rotate(
-            limit=15,
-            p=0.5,
-            interpolation=cv2.INTER_LANCZOS4,
-            border_mode=cv2.BORDER_REFLECT_101
-        ),
-
-        # Hue Saturation Value
-        A.HueSaturationValue(
-            hue_shift_limit=20,
-            sat_shift_limit=30,
-            val_shift_limit=20,
-            p=0.5
-        ),
-        # Color Jitter
-        A.ColorJitter(
-            brightness=0.2,
-            contrast=0.2,
-            saturation=0.2,
-            hue=0.1,
-            p=0.5
-        ),
-        # RGB Shift
-        A.RGBShift(
-            r_shift_limit=20,
-            g_shift_limit=20,
-            b_shift_limit=20,
-            p=0.5
-        ),
-
-        # blur or noise
-        A.OneOf([
-            A.MotionBlur(blur_limit=5, p=1.0),
-            A.GaussianBlur(blur_limit=(3,5), p=1.0),
-        ], p=0.35),
-
-        A.GaussNoise(
-            std_range=(0.01, 0.05),
-            mean_range=(0.0, 0.0),
-            per_channel=True,
-            noise_scale_factor=0.1,
-            p=0.35
-        ),
-
-        # A.Normalize(...) 제거
-        ToTensorV2()
-    ], p=1.0))

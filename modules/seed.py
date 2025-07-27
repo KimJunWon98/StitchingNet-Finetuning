@@ -1,4 +1,13 @@
 # modules/seed.py
+"""
+seed.py
+
+실험 재현성을 위한 랜덤 시드 고정 함수.
+- numpy, torch, random 등 모든 시드 일괄 고정
+
+사용 예시:
+    seed_everything(seed=42)
+"""
 
 import random
 import os

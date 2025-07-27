@@ -1,7 +1,5 @@
 # modules/utils.py
-
 import timm
-import torch
 
 def load_model(model_name, pretrained=True):
     """

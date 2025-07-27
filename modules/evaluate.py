@@ -1,3 +1,12 @@
+"""
+evaluate.py
+
+모델 평가 및 테스트 결과 출력 유틸리티.
+- 저장된 모델 체크포인트 불러오기
+- 테스트셋에 대한 정확도, 혼동행렬, 리포트 출력
+- 실험 결과 저장 및 시각화 지원
+"""
+
 import torch
 import time
 import os
@@ -25,12 +34,6 @@ def test_model(model, dataloader, device):
     print(cm)
     print("\nClassification Report:")
     print(cr)
-
-import torch
-import time
-import os
-import numpy as np
-from sklearn.metrics import confusion_matrix, classification_report
 
 def test_best_model(model, dataloader, device, checkpoint_path):
     """

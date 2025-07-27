@@ -2,7 +2,6 @@ import os
 import torch
 import json
 import matplotlib.pyplot as plt
-from collections import deque
 
 class EarlyStopping:
     # val_loss가 최소값을 갱신할 때만 best 모델로 저장
