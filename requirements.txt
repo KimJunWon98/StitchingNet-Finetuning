@@ -12,3 +12,4 @@ torchinfo==1.8.0
 ptflops==0.7.4
 fvcore==0.1.5.post20221221
 albumentations==2.0.5
+pandas

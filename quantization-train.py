@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision
-import wandb
+import pandas as pd
 import yaml
 from dotenv import load_dotenv
 
@@ -159,84 +159,6 @@ def apply_post_training_quantization(model: nn.Module, calibration_loader):
     return convert(model, inplace=False)
 
 
-# def apply_qat_training(
-#     model: nn.Module,
-#     trainloader,
-#     valloader,
-#     test_inference_loader,
-#     device,
-#     criterion,
-#     optimizer,
-#     scheduler=None,
-#     epochs: int = 5,
-# ):
-#     """QAT(Qualization Aware Training) 파인튜닝 및 에폭별 INT8 평가"""
-#     # QAT 준비
-#     model.eval()
-#     model.fuse_model()
-#     model.train()
-
-#     # 전역 QENGINE 사용
-#     torch.backends.quantized.engine = QENGINE
-#     # model.qconfig = my_per_tensor_qat_qconfig()
-#     model.qconfig = get_default_qat_qconfig(QENGINE)
-#     prepare_qat(model, inplace=True)
-
-#     model.to(device)
-
-#     for epoch in range(epochs):
-#         # 학습 루프
-#         model.train()
-#         running_loss = 0.0
-#         for inputs, labels, _ in trainloader:
-#             inputs, labels = inputs.to(device), labels.to(device)
-
-#             optimizer.zero_grad()
-#             outputs = model(inputs)
-#             loss = criterion(outputs, labels)
-#             loss.backward()
-#             optimizer.step()
-
-#             running_loss += loss.item() * inputs.size(0)
-
-#         epoch_loss = running_loss / len(trainloader.dataset)
-
-#         # 검증 루프
-#         model.eval()
-#         correct = 0
-#         total = 0
-#         with torch.no_grad():
-#             for inputs, labels, _ in valloader:
-#                 inputs, labels = inputs.to(device), labels.to(device)
-#                 outputs = model(inputs)
-#                 _, preds = torch.max(outputs, 1)
-#                 correct += (preds == labels).sum().item()
-#                 total += labels.size(0)
-#         val_acc = correct / total
-
-#         if scheduler:
-#             scheduler.step()
-
-#         print(
-#             f"[QAT] Epoch [{epoch + 1}/{epochs}] | Loss: {epoch_loss:.4f} | Val Acc: {val_acc:.4f}"
-#         )
-
-#         # INT8 변환 및 평가
-#         model_int8 = copy.deepcopy(model).to("cpu").eval()
-#         torch.backends.quantized.engine = QENGINE
-#         model_int8 = convert(model_int8, inplace=False)
-
-#         qat_loss, qat_acc, qat_time = evaluate_model_performance(
-#             model_int8, test_inference_loader, device="cpu"
-#         )
-
-#         print(
-#             f"[QAT Inference INT8] Loss={qat_loss:.4f}, Acc={qat_acc:.4f}, "
-#             f"Single‑sample Time={qat_time * 1000:.3f}ms\n"
-#         )
-
-#     return model
-
 def apply_qat_training(
     model: nn.Module,
     trainloader,
@@ -247,6 +169,7 @@ def apply_qat_training(
     optimizer,
     scheduler=None,
     epochs: int = 5,
+    log_callback=None,
 ):
     """QAT(Qualization Aware Training) 파인튜닝 및 valloader/testloader에 대한
        Fake-quant & INT8 평가를 에폭별로 수행"""
@@ -315,6 +238,15 @@ def apply_qat_training(
             f"Test Loss/Acc: {test_loss_int8:.4f}/{test_acc_int8:.4f} | "
             f"Test Time: {test_time_int8*1000:.3f}ms\n"
         )
+
+        # 콜백으로 로그 전달
+        if log_callback is not None:
+            log_callback(
+                epoch+1,
+                val_loss_fq, val_acc_fq, test_loss_fq, test_acc_fq,
+                val_loss_int8, val_acc_int8, val_time_int8,
+                test_loss_int8, test_acc_int8, test_time_int8
+            )
 
     return model
 
@@ -403,7 +335,6 @@ def main():
 
     checkpoint_base_dir = os.path.join(base_dir, f"seed-{SEED}-version-{use_augmentation}")
 
-    wandb.login(key=os.getenv("WANDB_API_KEY"))
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -440,21 +371,20 @@ def main():
         else None
     )
 
-    # --------------------------- W&B 설정 ------------------------------
+    # --------------------------- CSV 로깅 준비 ------------------------------
+    logs = []
     param_count, model_size_mb = get_model_statistics(model1)
-
-    wandb.init(project=project_name, name=f"{MODEL_NAME}_PTQ")
-    wandb.config.update(
-        {
-            "model_name": f"{MODEL_NAME}_PTQ",
-            "batch_size": BATCH_SIZE,
-            "use_augmentation": use_augmentation,
-            "freeze_layers": freeze_layers,
-            "seed": SEED,
-            "qengine": QENGINE,
-        }
-    )
-    wandb.log({"total_params": param_count, "model_size_MB": model_size_mb})
+    logs.append({
+        "stage": "init",
+        "model_name": f"{MODEL_NAME}_PTQ",
+        "batch_size": BATCH_SIZE,
+        "use_augmentation": use_augmentation,
+        "freeze_layers": freeze_layers,
+        "seed": SEED,
+        "qengine": QENGINE,
+        "total_params": param_count,
+        "model_size_MB": model_size_mb
+    })
 
     # --------------------------- FP32 학습 --------------------------
     _ = train_model(
@@ -492,7 +422,11 @@ def main():
     test_acc_fp32 = correct / total
 
     print(f"[FP32 - model1] Test Loss={test_loss_fp32:.4f}, Acc={test_acc_fp32:.4f}")
-    wandb.log({"Test Loss (FP32)": test_loss_fp32, "Test Acc (FP32)": test_acc_fp32})
+    logs.append({
+        "stage": "FP32_test",
+        "loss": test_loss_fp32,
+        "acc": test_acc_fp32
+    })
 
     # --------------------------- FP32 추론 -------------------------
     fp32_loss, fp32_acc, fp32_time = evaluate_model_performance(model1, test_inference_loader, device="cpu")
@@ -500,13 +434,12 @@ def main():
         f"[FP32 Inference - model1] Loss={fp32_loss:.4f}, Acc={fp32_acc:.4f}, "
         f"Single‑sample Time={fp32_time * 1000:.3f}ms"
     )
-    wandb.log(
-        {
-            "FP32_Infer_Loss": fp32_loss,
-            "FP32_Infer_Acc": fp32_acc,
-            "FP32_Infer_Time(ms)": fp32_time * 1000,
-        }
-    )
+    logs.append({
+        "stage": "FP32_infer",
+        "loss": fp32_loss,
+        "acc": fp32_acc,
+        "time_ms": fp32_time * 1000
+    })
 
     # --------------------------- PTQ -----------------------------------
     model1.to("cpu")
@@ -517,14 +450,12 @@ def main():
         f"[PTQ Inference] Loss={ptq_loss:.4f}, Acc={ptq_acc:.4f}, "
         f"Single‑sample Time={ptq_time * 1000:.3f}ms"
     )
-    wandb.log(
-        {
-            "PTQ_Infer_Loss": ptq_loss,
-            "PTQ_Infer_Acc": ptq_acc,
-            "PTQ_Infer_Time(ms)": ptq_time * 1000,
-        }
-    )
-    wandb.finish()
+    logs.append({
+        "stage": "PTQ_infer",
+        "loss": ptq_loss,
+        "acc": ptq_acc,
+        "time_ms": ptq_time * 1000
+    })
 
     # --------------------------------------------------------------------
     #  (B) QAT 모델 (model2)
@@ -532,18 +463,7 @@ def main():
     model2 = create_model_by_name(MODEL_NAME, num_classes=len(classes), freeze=freeze_layers)
     model2.to(device)
 
-    # --------------------------- W&B (QAT) ------------------------------
-    wandb.init(project=project_name, name=f"{MODEL_NAME}_QAT")
-    wandb.config.update(
-        {
-            "model_name": f"{MODEL_NAME}_QAT",
-            "batch_size": BATCH_SIZE,
-            "use_augmentation": use_augmentation,
-            "freeze_layers": freeze_layers,
-            "seed": SEED,
-            "qengine": QENGINE,
-        }
-    )
+
 
     # Best FP32 가중치 로드
     model2.load_state_dict(torch.load(best_model_path, map_location=device))
@@ -563,12 +483,11 @@ def main():
     print(
         f"[FP32 - model2] Test Loss={total_loss / total:.4f}, Acc={correct / total:.4f}"
     )
-    wandb.log(
-        {
-            "Test Loss (FP32)_model2": total_loss / total,
-            "Test Acc (FP32)_model2": correct / total,
-        }
-    )
+    logs.append({
+        "stage": "FP32_test_model2",
+        "loss": total_loss / total,
+        "acc": correct / total
+    })
 
     # QAT 파인튜닝 설정
     optimizer_qat = optim.Adam(filter(lambda p: p.requires_grad, model2.parameters()), lr=base_lr)
@@ -579,6 +498,23 @@ def main():
     )
 
     # --------------------------- QAT 파인튜닝 ------------------------
+    qat_train_logs = []
+    def qat_log_callback(epoch, fq_val_loss, fq_val_acc, fq_test_loss, fq_test_acc, int8_val_loss, int8_val_acc, int8_val_time, int8_test_loss, int8_test_acc, int8_test_time):
+        qat_train_logs.append({
+            "stage": "QAT_epoch",
+            "epoch": epoch,
+            "fq_val_loss": fq_val_loss,
+            "fq_val_acc": fq_val_acc,
+            "fq_test_loss": fq_test_loss,
+            "fq_test_acc": fq_test_acc,
+            "int8_val_loss": int8_val_loss,
+            "int8_val_acc": int8_val_acc,
+            "int8_val_time_ms": int8_val_time * 1000,
+            "int8_test_loss": int8_test_loss,
+            "int8_test_acc": int8_test_acc,
+            "int8_test_time_ms": int8_test_time * 1000
+        })
+
     model2_qat = apply_qat_training(
         model=model2,
         trainloader=trainloader,
@@ -589,6 +525,7 @@ def main():
         optimizer=optimizer_qat,
         scheduler=scheduler_qat,
         epochs=20,
+        log_callback=qat_log_callback
     )
 
     # --------------------------- INT8 변환 -----------------------
@@ -601,14 +538,19 @@ def main():
         f"[QAT Inference] Loss={qat_loss:.4f}, Acc={qat_acc:.4f}, "
         f"Single‑sample Time={qat_time * 1000:.3f}ms"
     )
-    wandb.log(
-        {
-            "QAT_Infer_Loss": qat_loss,
-            "QAT_Infer_Acc": qat_acc,
-            "QAT_Infer_Time(ms)": qat_time * 1000,
-        }
-    )
-    wandb.finish()
+    logs.append({
+        "stage": "QAT_infer",
+        "loss": qat_loss,
+        "acc": qat_acc,
+        "time_ms": qat_time * 1000
+    })
+
+    # QAT 학습 로그 합치기
+    logs.extend(qat_train_logs)
+
+    # CSV로 저장
+    df = pd.DataFrame(logs)
+    df.to_csv(f"{MODEL_NAME}_quantization_log.csv", index=False)
 
 
 if __name__ == "__main__":
