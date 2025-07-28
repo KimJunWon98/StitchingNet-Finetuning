@@ -524,7 +524,7 @@ def main():
         criterion=criterion,
         optimizer=optimizer_qat,
         scheduler=scheduler_qat,
-        epochs=20,
+        epochs=3,
         log_callback=qat_log_callback
     )
 

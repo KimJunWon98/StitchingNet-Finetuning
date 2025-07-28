@@ -161,14 +161,14 @@ def train_model(
               f"Train Loss: {train_loss:.4f}, Train Acc: {train_accuracy:.2f}% | "
               f"Val Loss: {val_loss:.4f}, Val Acc: {val_accuracy:.2f}%")
 
-        # wandb 로그
-        wandb.log({
-            "epoch": epoch,
-            "train_loss": train_loss,
-            "train_accuracy": train_accuracy,
-            "val_loss": val_loss,
-            "val_accuracy": val_accuracy
-        })
+        # # wandb 로그
+        # wandb.log({
+        #     "epoch": epoch,
+        #     "train_loss": train_loss,
+        #     "train_accuracy": train_accuracy,
+        #     "val_loss": val_loss,
+        #     "val_accuracy": val_accuracy
+        # })
 
         if val_accuracy > best_val_accuracy:
             best_val_accuracy = val_accuracy
