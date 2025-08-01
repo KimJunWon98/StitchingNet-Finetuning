@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# ===========================
+# StitchingNet 양자화 실험 스크립트
+# ===========================
+
 # 1) 사용할 모델 리스트
 models=(
   "mobilenet_v3_large"
@@ -20,17 +24,15 @@ models=(
   "mobilenet_v3_small_custom_025"
 )
 
-
-# 2) augmentation 모드 리스트 (0=off, 1~3=각각 다른 설정)
-augments=(0 1 2 3)
+# 2) 증강(augmentation) 모드 리스트 (0=off, 1~3=각각 다른 증강 설정)
 augments=(0 1 2 3)
 
-# # 3) 공통 파라미터
+# 3) 공통 파라미터 (필요시 주석 해제하여 사용)
 # EPOCHS=30
 # BATCH_SIZE=64
-# CONFIG="config-qat.yaml"
+CONFIG="config-qat.yaml"
 
-# 4) 실행 루프
+# 4) 실험 실행 루프
 for model in "${models[@]}"; do
   for aug in "${augments[@]}"; do
     echo "=============================================="
@@ -40,9 +42,10 @@ for model in "${models[@]}"; do
     python quantization-train.py \
       --model "${model}" \
       --augment "${aug}" \
-    #   --epochs "${EPOCHS}" \
-    #   --batch_size "${BATCH_SIZE}" \
-    #   --config "${CONFIG}"
+      --config "${CONFIG}" \
+      # --epochs "${EPOCHS}" \
+      # --batch-size "${BATCH_SIZE}" 
+
 
     echo "[DONE ] Model: ${model} | Augment mode: ${aug}"
     echo "=============================================="
@@ -50,5 +53,5 @@ for model in "${models[@]}"; do
   done
 done
 
-
-# nohup ./run-quantization-train.sh > experiments_version0.log 2>&1 &
+# 백그라운드 실행 예시:
+# nohup ./run-quantization-train.sh > experiments.log 2>&1 &
