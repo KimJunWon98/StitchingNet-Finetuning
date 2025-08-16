@@ -161,7 +161,7 @@ class DefectDataset(Dataset):
 
 
 # StitchingNet version2
-def make_all_samples(root: str):
+def StitchingNetVer2_make_all_samples(root: str):
     """
     root ─┐
           ├─ Bobbin thread pulling up/
@@ -212,36 +212,36 @@ def make_all_samples(root: str):
     return samples, classes
     # return samples, classes, class_to_idx
 
-# def make_all_samples(root):
-#     """
-#     data_root 디렉토리 구조를 훑어서 (img_path, defect_label_idx) 형태의 전체 samples와
-#     classes(결함종류 목록), class_to_idx를 생성해 반환
-#     """
-#     samples = []
-#     defect_set = set()
+def StitchingNet_make_all_samples(root):
+    """
+    data_root 디렉토리 구조를 훑어서 (img_path, defect_label_idx) 형태의 전체 samples와
+    classes(결함종류 목록), class_to_idx를 생성해 반환
+    """
+    samples = []
+    defect_set = set()
 
-#     # 1) root 내부의 모든 fabric 폴더 → defect 폴더 → 이미지
-#     for fabric in os.listdir(root):
-#         fabric_path = os.path.join(root, fabric)
-#         if os.path.isdir(fabric_path):
-#             for defect in os.listdir(fabric_path):
-#                 defect_path = os.path.join(fabric_path, defect)
-#                 if os.path.isdir(defect_path):
-#                     defect_set.add(defect)
-#                     for fname in os.listdir(defect_path):
-#                         if is_image_file(fname):
-#                             img_path = os.path.join(defect_path, fname)
-#                             samples.append((img_path, defect))
+    # 1) root 내부의 모든 fabric 폴더 → defect 폴더 → 이미지
+    for fabric in os.listdir(root):
+        fabric_path = os.path.join(root, fabric)
+        if os.path.isdir(fabric_path):
+            for defect in os.listdir(fabric_path):
+                defect_path = os.path.join(fabric_path, defect)
+                if os.path.isdir(defect_path):
+                    defect_set.add(defect)
+                    for fname in os.listdir(defect_path):
+                        if is_image_file(fname):
+                            img_path = os.path.join(defect_path, fname)
+                            samples.append((img_path, defect))
 
-#     # 2) 클래스 목록, 라벨 인덱스 매핑
-#     classes = sorted(list(defect_set))
-#     class_to_idx = {cls: idx for idx, cls in enumerate(classes)}
+    # 2) 클래스 목록, 라벨 인덱스 매핑
+    classes = sorted(list(defect_set))
+    class_to_idx = {cls: idx for idx, cls in enumerate(classes)}
 
-#     # 3) samples에 라벨 인덱스 적용
-#     #    [(img_path, label_idx), ...]
-#     samples = [(path, class_to_idx[label]) for (path, label) in samples]
+    # 3) samples에 라벨 인덱스 적용
+    #    [(img_path, label_idx), ...]
+    samples = [(path, class_to_idx[label]) for (path, label) in samples]
 
-#     return samples, classes
+    return samples, classes
 
 
 

@@ -13,17 +13,23 @@ StitchingNet 데이터셋을 위한 DataLoader 생성 유틸리티.
 
 from torch.utils.data import DataLoader
 from .dataset import (
-    make_all_samples, stratified_split,
+    StitchingNet_make_all_samples, StitchingNetVer2_make_all_samples, stratified_split,
     DefectDataset, get_train_transform_v1, get_train_transform_v2, get_train_transform_v3, get_val_test_transform
 )
 
+import json
+import os
+
 def get_defect_data_loaders(
+    dataset_name,
     data_root,
     batch_size=64,
     num_workers=0,
     train_ratio=0.7,
     val_ratio=0.15,
-    use_augmentation=0
+    use_augmentation=0,
+    split_output_dir: str = None,
+    json_file: str = None # 입력 JSON 파일 경로 (선택적, 데이터셋이 이미 분할된 경우 사용)
 ):
 
     """
@@ -42,7 +48,10 @@ def get_defect_data_loaders(
     """
 
     # 1) 전체 samples와 classes 생성
-    samples, classes = make_all_samples(data_root)
+    if dataset_name == "StitchingNet":
+        samples, classes = StitchingNet_make_all_samples(data_root)
+    elif dataset_name == "StitchingNetVer2":
+        samples, classes = StitchingNetVer2_make_all_samples(data_root)
 
     # 2) stratified_split으로 train/val/test 분할
     train_samples, val_samples, test_samples = stratified_split(
@@ -51,7 +60,56 @@ def get_defect_data_loaders(
         val_ratio=val_ratio
     )
 
-    # 3) transform 정의
+    # 3) split 정보 저장: split_output_dir이 지정되면 dirname을 만들고 자동 파일명 생성
+    if split_output_dir:
+        os.makedirs(split_output_dir, exist_ok=True)
+        filename = "dataset_split.json"
+        output_path = os.path.join(split_output_dir, filename)
+
+        def _to_rel(samples):
+            return [
+                (os.path.relpath(path, data_root), lbl)
+                for path, lbl in samples
+            ]
+
+        dataset_info = {
+            "train": _to_rel(train_samples),
+            "val":   _to_rel(val_samples),
+            "test":  _to_rel(test_samples)
+        }
+        with open(output_path, "w", encoding="utf-8") as fp:
+            json.dump(dataset_info, fp, ensure_ascii=False, indent=4)
+        print(f"[INFO] Saved split info to {output_path}")
+
+
+    # 3.5) input_json_file이 지정되면 해당 파일에서 샘플 로드
+    if json_file:
+        data = json.load(open(json_file, "r", encoding="utf-8"))
+        train_samples = [
+            (os.path.join(data_root, rel), int(lbl))
+            for rel, lbl in data["train"]
+        ]
+        val_samples = [
+            (os.path.join(data_root, rel), int(lbl))
+            for rel, lbl in data["val"]
+        ]
+        test_samples = [
+            (os.path.join(data_root, rel), int(lbl))
+            for rel, lbl in data["test"]
+        ]
+
+    print(f"[INFO] Loaded from JSON: {json_file}")
+
+    def _print_head(name, samples, n=5):
+        print(f"  {name} (first {n}):")
+        for path, lbl in samples[:n]:
+            print(f"    - {path}  (label={lbl})")
+
+    _print_head("train_samples", train_samples)
+    _print_head("val_samples",   val_samples)
+    _print_head("test_samples",  test_samples)
+
+    # 4) transform 정의
     transform_map = {
         1: (get_train_transform_v1, "version 1"),
         2: (get_train_transform_v2, "version 2"),
@@ -65,12 +123,12 @@ def get_defect_data_loaders(
     train_transform = transform_func()
     val_test_transform = get_val_test_transform()
 
-    # 4) Dataset 생성
+    # 5) Dataset 생성
     train_dataset = DefectDataset(train_samples, classes, transform=train_transform) 
     val_dataset   = DefectDataset(val_samples,   classes, transform=val_test_transform)
     test_dataset  = DefectDataset(test_samples,  classes, transform=val_test_transform)
 
-    # 5) DataLoader 생성
+    # 6) DataLoader 생성
     # BatchNorm 레이어가 있는 모델을 학습하는 경우 오류가 발생 가능. 배치에 1장의 이미지만 있으면.
     trainloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, drop_last = True) 
     valloader   = DataLoader(val_dataset,   batch_size=batch_size, shuffle=False, num_workers=num_workers)

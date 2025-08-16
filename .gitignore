@@ -30,3 +30,6 @@ others/
 config_.yaml
 test.py
 *.ipynb
+*.pt
+*.tar.gz
+kd/
