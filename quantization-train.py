@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision
+import timm
 import wandb
 import yaml
 from dotenv import load_dotenv
@@ -49,28 +50,44 @@ def create_model_by_name(
     num_classes: int,
     freeze: bool = False,
 ) -> nn.Module:
+    
+    # timm 모델
+    if model_name.startswith("timm_"):
+        timm_model_name = model_name.replace("timm_", "")
+        try:
+            model = timm.create_model(
+                timm_model_name,
+                pretrained=True,
+                num_classes=num_classes,
+            )
+        except Exception as e:
+            raise ValueError(
+                f"Model '{model_name}' not found in timm or failed to load: {e}"
+            )
+    
+    
     # 모델 이름에 따라 커스텀 또는 torchvision 모델 생성
     # alpha 값 등 하이퍼파라미터를 모델명에서 추출하여 적용
-
-    if model_name.startswith("mobilenet_v2_custom"):
-        alpha = float(model_name.split("_")[3]) / 100
-        model = mobilenet_v2_custom(alpha=alpha, quantize=False, weights=None)
-
-    elif model_name.startswith("mobilenet_v3_custom"):
-        alpha = float(model_name.split("_")[3]) / 100
-        model = mobilenet_v3_custom(alpha=alpha, quantize=False, weights=None)
-
-    elif model_name.startswith("mobilenet_v3_small_custom"):
-        alpha = float(model_name.split("_")[4]) / 100
-        model = mobilenet_v3_small_custom(alpha=alpha, quantize=False, weights=None)
-
-    elif model_name.startswith("mobilenet_v2"):
-        model = torchvision.models.quantization.mobilenet_v2(pretrained=True)
-
-    elif model_name.startswith("mobilenet_v3_large"):
-        model = torchvision.models.quantization.mobilenet_v3_large(pretrained=True)
     else:
-        raise ValueError(f"Unknown MODEL_NAME: {model_name}")
+        if model_name.startswith("mobilenet_v2_custom"):
+            alpha = float(model_name.split("_")[3]) / 100
+            model = mobilenet_v2_custom(alpha=alpha, quantize=False, weights=None)
+
+        elif model_name.startswith("mobilenet_v3_custom"):
+            alpha = float(model_name.split("_")[3]) / 100
+            model = mobilenet_v3_custom(alpha=alpha, quantize=False, weights=None)
+
+        elif model_name.startswith("mobilenet_v3_small_custom"):
+            alpha = float(model_name.split("_")[4]) / 100
+            model = mobilenet_v3_small_custom(alpha=alpha, quantize=False, weights=None)
+
+        elif model_name.startswith("mobilenet_v2"):
+            model = torchvision.models.quantization.mobilenet_v2(pretrained=True)
+
+        elif model_name.startswith("mobilenet_v3_large"):
+            model = torchvision.models.quantization.mobilenet_v3_large(pretrained=True)
+        else:
+            raise ValueError(f"Unknown MODEL_NAME: {model_name}")
 
     # 분류기 레이어를 클래스 수에 맞게 교체
     model = replace_classifier(model, num_classes)
@@ -366,6 +383,8 @@ def main():
     use_augmentation= int(data_cfg.get("use_augmentation", 0))
 
     dataset_name    = dataset_name = data_cfg.get("dataset_name", "StitchingNet")
+    img_size_map   = data_cfg.get("img_size_map", {})
+    img_size       = tuple(img_size_map.get(dataset_name, [224, 224]))  # 기본값 224,224
     data_root       = data_cfg["root"]
     train_ratio     = data_cfg["train_ratio"]
     val_ratio       = data_cfg["val_ratio"]
@@ -424,7 +443,8 @@ def main():
         train_ratio=train_ratio,
         val_ratio=val_ratio,
         use_augmentation=use_augmentation,
-        split_output_dir=checkpoint_base_dir + "/split_data_info" # 데이터 분할 결과 저장 디렉토리
+        split_output_dir=checkpoint_base_dir + "/split_data_info", # 데이터 분할 결과 저장 디렉토리
+        img_size=img_size,
     )
 
     # 추론용 데이터로더 (batch_size=1)
