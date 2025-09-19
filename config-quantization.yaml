@@ -13,9 +13,10 @@ quantization:
   qengine: "fbgemm"                  # 양자화 엔진: x86/서버는 "fbgemm", ARM/모바일은 "qnnpack" 권장
 
 data:
-  dataset_name: "ImageNet-1k" #"ImageNet-tiny" # "StitchingNet"  # 데이터셋 이름
+  dataset_name: "ImageNet-tiny" #"ImageNet-tiny" # "StitchingNet"  # "ImageNet-1k" # 데이터셋 이름
+  root: "./dataset/ImageNet-tiny/tiny-imagenet-200"
   # root: #"./dataset/ImageNet-tiny/tiny-imagenet-200"  # 데이터셋 루트 경로
-  root: "./dataset/ImageNet-1k" # 데이터셋 루트 경로
+  # root: "./dataset/ImageNet-1k" # 데이터셋 루트 경로
   # root: "./dataset/StitchingNet"
   train_ratio: 0.7                    # 학습 데이터 비율
   val_ratio: 0.15                     # 검증 데이터 비율
@@ -27,9 +28,9 @@ data:
 
 training:
   training_flag: true                  # 학습 모드 여부
-  project_name: "ImageNet_1k"       # W&B 등 실험 관리용 프로젝트명
+  project_name: "ImageNet_tiny"       # W&B 등 실험 관리용 프로젝트명
   use_dataparallel: false             # GPU가 2개 이상일 때 DataParallel 사용 여부
-  checkpoint_base_dir: "./checkpoint/ImageNet_1k/paper/dataset_test/batch128" # 체크포인트 저장 기본 경로
+  checkpoint_base_dir: "./checkpoint/ImageNet_tiny/paper/dataset_test/batch128" # 체크포인트 저장 기본 경로
   freeze_layers: false                # True면 모든 파라미터를 freeze
 
   base_lr: 1e-4                       # 기본 learning rate
@@ -49,3 +50,12 @@ qat:
   qat_eta_min: 1e-7            # QAT에서 learning rate의 최소값
   qat_lr: 1e-4                # QAT에서 기본 learning rate
   qat_head_lr: 1e-3          # QAT에서 head(분류기) learning rate (사용하지 않으면 무시)
+
+
+kd:
+  use_kd: false
+  teacher_model_name: "mobilenet_v3_large"   # torchvision quantization 모델 경로 분기 사용
+  teacher_checkpoint: null                   # 사전학습 ckpt 있으면 경로로 교체
+  temperature: 4.0
+  alpha: 0.5
+  freeze_teacher: true
