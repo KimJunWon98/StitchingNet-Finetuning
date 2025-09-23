@@ -389,6 +389,7 @@ def main():
     train_ratio     = data_cfg["train_ratio"]
     val_ratio       = data_cfg["val_ratio"]
 
+    initial_weight_path = train_cfg.get("initial_weight_path", None)
     TRAINING_FLAG = train_cfg.get("training_flag", True)
     project_name    = train_cfg["project_name"]
     base_dir        = train_cfg["checkpoint_base_dir"]
@@ -470,6 +471,9 @@ def main():
 
     # --------------------------- 모델 생성 -----------------------------
     model1 = create_model_by_name(MODEL_NAME, num_classes=len(classes), freeze=freeze_layers)
+    if initial_weight_path is not None:
+        model1.load_state_dict(torch.load(initial_weight_path, map_location=device))
+        
     model1.to(device)
 
     # --------------------------- 옵티마이저 ------------------------------

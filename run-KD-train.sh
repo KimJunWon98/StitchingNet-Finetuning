@@ -26,12 +26,12 @@ models=(
 )
 
 # 2) 증강(augmentation) 모드 리스트 (0=off, 1~3=각각 다른 증강 설정) augments=(0 1 2 3)
-augments=(2)
+augments=(3)
 
 # 3) 공통 파라미터 (필요시 주석 해제하여 사용)
 # EPOCHS=30
 # BATCH_SIZE=64
-CONFIG="config-quantization.yaml"
+CONFIG="config-KD.yaml"
 
 # 4) 실험 실행 루프
 for model in "${models[@]}"; do
