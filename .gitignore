@@ -33,3 +33,4 @@ test.py
 *.pt
 *.tar.gz
 kd/
+*.yml
